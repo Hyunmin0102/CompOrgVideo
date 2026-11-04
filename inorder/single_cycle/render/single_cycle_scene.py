@@ -398,13 +398,18 @@ class SingleCycle(StyleScene):
             if sname in first:
                 stage_at.setdefault(first[sname], sname)
         marks = sorted(set([0, lat, period] + list(stage_at)))
-        SEC_PER_PS = 0.0085
+        SEC_PER_PS = 0.017          # 600 ps ~ 10 s
         for a, b in zip(marks[:-1], marks[1:]):
             if a in stage_at:
+                # announce the stage first (cursor stopped), then switch the phase marker
+                self.say(self.stage_text(st, stage_at[a]), wait=1.8)
                 self.set_phase(STAGES.index(stage_at[a]))
+                self.pause(0.4)
             if a == lat:
                 self.on_latency(st)
             self.play(T.animate.set_value(b), run_time=self.rt((b - a) * SEC_PER_PS), rate_func=linear)
+        if lat == period:           # slowest instruction: no waste
+            self.on_latency(st)
 
         # freeze: remove updaters, leave final look
         for m in [*ovs, *self.slot_mobs, *bars]:
@@ -465,7 +470,43 @@ class SingleCycle(StyleScene):
         return None if x is None else str(x)
 
     # ---------------------------------------------------------- clock edge ---
+    def stage_text(self, st, stage):
+        v, f, k = st["values"], st["fields"], st["class"]
+        dur = {e["comp"]: e["end"] - e["start"] for e in st["timing"]["events"]}
+        start = min(e["start"] for e in st["timing"]["events"] if e["stage"] == stage)
+        rs, rt = reg_name(f["rs"]), reg_name(f["rt"])
+        head = f"{start}ps → {stage}: "
+        if stage == "IF":
+            return [head + f"PC=0x{st['pc']:02X}로 명령어 메모리(instruction memory)를 읽는다 ({dur['IMEM']}ps).",
+                    f"동시에 PC+4 덧셈기(adder)가 0x{v['PCPlus4']:02X}를 계산한다 ({dur['ADD4']}ps)."]
+        if stage == "ID":
+            regs = f"{rs}={v['RD1']}" + (f", {rt}={v['RD2']}" if k in ("R", "SW", "BEQ") else "")
+            l2 = "제어 유닛(control unit)은 opcode를 보고 제어 신호를 낸다 (0ps)."
+            if k in ("I", "LW", "SW", "BEQ"):
+                l2 = f"부호 확장(sign extend): 즉치값 {v['SignImm']}. " + l2
+            return [head + f"레지스터 파일(register file)에서 {regs}를 읽는다 ({dur['RF']}ps).", l2]
+        if stage == "EX":
+            if k in ("LW", "SW"):
+                l1 = f"ALU가 주소를 계산한다: {v['SrcA']} + {v['SignImm']} = {v['ALUResult']} ({dur['ALU']}ps)."
+            elif k == "BEQ":
+                l1 = f"ALU가 비교한다: {v['SrcA']} - {v['SrcB']} = {v['ALUResult']} → Zero={st['Zero']} ({dur['ALU']}ps)."
+            else:
+                l1 = f"ALU가 {st['alu_op']} 연산: {v['SrcA']} {OPSYM[st['alu_op']]} {v['SrcB']} = {v['ALUResult']} ({dur['ALU']}ps)."
+            l2 = (f"분기 덧셈기: PC+4 + 즉치값×4 = 0x{v['PCBranch']:02X} ({dur['ADDBR']}ps)."
+                  if k == "BEQ" else "")
+            return [head + l1] + ([l2] if l2 else [])
+        if stage == "MEM":
+            if k == "LW":
+                return [head + f"데이터 메모리(data memory)의 주소 {v['ALUResult']}를 읽는다 → {v['ReadData']} ({dur['DMEM']}ps)."]
+            return [head + f"데이터 메모리 주소 {v['ALUResult']}에 {v['WriteData']}를 쓸 준비 ({dur['DMEM']}ps). "
+                    "실제 저장은 클록 에지에서."]
+        return [head + f"결과 {v['Result']}가 레지스터 파일의 {v['WriteReg']} 입력에 도착한다 ({dur['RF_W']}ps).",
+                "실제 저장은 클록 에지(clock edge)에서 일어난다."]
+
     def clock_edge(self, st):
+        p = st["timing"]["period"]
+        self.say([f"{p}ps: 클록 주기 끝 — 다음 클록 에지(clock edge)에서 상태가 바뀌고 다음 사이클이 시작된다."],
+                 wait=1.6)
         an, words = [], []
         for r, val in st["changes"]["regs"].items():
             if r in self.regs:
