@@ -139,6 +139,34 @@ def timing(k):
     return ev, latency
 
 
+def arrival(k, ev, latency):
+    """When the signal on each wire becomes valid, and when each component is
+    busy ([start, end] list; zero-delay parts have start == end)."""
+    end = {}
+    for e in ev:
+        end.setdefault(e["comp"], e["end"])
+    t_ins, t_rf, t_alu = end["IMEM"], end["RF"], end["ALU"]
+    t_srcb = t_ins if k in ("I", "LW", "SW") else t_rf
+    t_res = end.get("DMEM", t_alu)
+    t_pc = max(t_alu, end["ADDBR"]) if k == "BEQ" else end["ADD4"]
+    w = {"pc_imem": 0, "pc_add4": 0, "four_add4": 0,
+         "pcplus4_pcmux": end["ADD4"], "pcplus4_addbr": end["ADD4"],
+         "instr_ctrl": t_ins, "instr_a1": t_ins, "instr_a2": t_ins, "instr_rt_wr": t_ins,
+         "instr_rd_wr": t_ins, "instr_imm": t_ins, "writereg": t_ins, "branch_and": t_ins,
+         "signimm_alusrc": t_ins, "signimm_sl2": t_ins, "sl2_addbr": t_ins,
+         "rd1_srca": t_rf, "rd2_alusrc": t_rf, "rd2_wd": t_rf, "srcb": t_srcb,
+         "aluresult_addr": t_alu, "aluresult_res": t_alu, "zero_and": t_alu, "pcsrc": t_alu,
+         "pcbranch": end.get("ADDBR"), "readdata_res": end.get("DMEM"), "result_wd3": t_res,
+         "pcnext": t_pc}
+    c = {"PC": [[0, 0]], "PCMUX": [[t_pc, t_pc]], "CTRL": [[t_ins, t_ins]],
+         "SIGNEXT": [[t_ins, t_ins]], "SL2": [[t_ins, t_ins]], "REGDSTMUX": [[t_ins, t_ins]],
+         "ALUSRCMUX": [[t_srcb, t_srcb]], "AND": [[t_alu, t_alu]], "RESMUX": [[t_res, t_res]]}
+    for e in ev:
+        name = "RF" if e["comp"] == "RF_W" else e["comp"]
+        c.setdefault(name, []).append([e["start"], e["end"]])
+    return w, c
+
+
 def main():
     prog = assemble(PROGRAM, BASE_PC)
     imem = {p["addr"]: p for p in prog}
@@ -177,6 +205,9 @@ def main():
         k = klass(d)
         comps, wires = active_parts(k, bool(pcsrc))
         ev, lat = timing(k)
+        wt, ct = arrival(k, ev, lat)
+        wt = {n: wt[n] for n in wires}
+        ct = {n: ct[n] for n in comps}
         steps.append({
             "cycle": len(steps) + 1, "index": prog.index(p) + 1, "pc": pc, "word": f"{p['word']:08X}",
             "text": p["text"], "mnemonic": d.mnemonic, "class": k,
@@ -191,7 +222,8 @@ def main():
                        "Result": None if result is None else s32(result),
                        "PCBranch": pcbranch, "PCNext": pcnext},
             "active": {"components": comps, "wires": wires},
-            "timing": {"events": ev, "latency": lat, "period": period, "waste": period - lat},
+            "timing": {"events": ev, "latency": lat, "period": period, "waste": period - lat,
+                       "wire_ps": wt, "comp_ps": ct},
             "changes": changes,
             "regs_after": {n: s32(regs[i]) for i, n in enumerate(map(reg_name, range(32)))},
             "mem_after": {f"0x{a:02X}": s32(v) for a, v in sorted(mem.items())},

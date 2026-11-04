@@ -128,10 +128,10 @@ TAGS = {"RegWrite": ((-3.30, 1.90), "RegWrite"), "RegDst": ((-1.00, -0.50), "Reg
 
 # where data values are written (anchor, direction)
 SLOTS = {
-    "PC": ((-6.22, 0.55), DOWN), "Instr": ((-4.62, 1.18), UP), "PCPlus4": ((-4.95, -0.85), DOWN),
+    "PC": ((-6.22, 0.55), DOWN), "Instr": ((-5.35, 1.80), UP), "PCPlus4": ((-4.95, -0.85), DOWN),
     "RD1": ((-2.15, 1.43), UP), "RD2": ((-2.45, 0.96), UP), "SignImm": ((-2.62, -0.80), DOWN),
     "SrcB": ((-1.48, 0.55), DOWN), "ALUResult": ((-0.33, 0.86), DOWN), "Zero": ((-0.40, 2.05), RIGHT),
-    "WriteReg": ((-1.30, -0.56), DOWN), "PCBranch": ((-0.30, -1.30), DOWN),
+    "WriteReg": ((-0.42, -0.24), RIGHT), "PCBranch": ((-0.30, -1.30), DOWN),
     "ReadData": ((1.75, 1.40), UP), "WriteData": ((0.0, 0.30), DOWN), "Result": ((2.98, 0.35), RIGHT),
 }
 

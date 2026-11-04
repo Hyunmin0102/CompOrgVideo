@@ -242,7 +242,103 @@
     ],
     "latency": 600,
     "period": 600,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_addr": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_ctrl": 200,
+     "instr_imm": 200,
+     "instr_rt_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "readdata_res": 550,
+     "result_wd3": 550,
+     "signimm_alusrc": 200,
+     "srcb": 200,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "DMEM": [
+      [
+       350,
+       550
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       550,
+       550
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       550,
+       600
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       200,
+       200
+      ]
+     ]
+    }
    },
    "changes": {
     "regs": {
@@ -399,7 +495,90 @@
     ],
     "latency": 400,
     "period": 600,
-    "waste": 200
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
    },
    "changes": {
     "regs": {
@@ -556,7 +735,90 @@
     ],
     "latency": 400,
     "period": 600,
-    "waste": 200
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
    },
    "changes": {
     "regs": {
@@ -713,7 +975,90 @@
     ],
     "latency": 400,
     "period": 600,
-    "waste": 200
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
    },
    "changes": {
     "regs": {
@@ -869,7 +1214,85 @@
     ],
     "latency": 550,
     "period": 600,
-    "waste": 50
+    "waste": 50,
+    "wire_ps": {
+     "aluresult_addr": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_imm": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_wd": 250,
+     "signimm_alusrc": 200,
+     "srcb": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "DMEM": [
+      [
+       350,
+       550
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       200,
+       200
+      ]
+     ]
+    }
    },
    "changes": {
     "regs": {},
@@ -1026,7 +1449,90 @@
     ],
     "latency": 400,
     "period": 600,
-    "waste": 200
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
    },
    "changes": {
     "regs": {
@@ -1188,7 +1694,101 @@
     ],
     "latency": 350,
     "period": 600,
-    "waste": 250
+    "waste": 250,
+    "wire_ps": {
+     "branch_and": 200,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_imm": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcbranch": 300,
+     "pcnext": 350,
+     "pcplus4_addbr": 100,
+     "pcsrc": 350,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "signimm_sl2": 200,
+     "sl2_addbr": 200,
+     "srcb": 250,
+     "zero_and": 350
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ADDBR": [
+      [
+       200,
+       300
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "AND": [
+      [
+       350,
+       350
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       200,
+       200
+      ]
+     ],
+     "SL2": [
+      [
+       200,
+       200
+      ]
+     ]
+    }
    },
    "changes": {
     "regs": {},
@@ -1344,7 +1944,96 @@
     ],
     "latency": 400,
     "period": 600,
-    "waste": 200
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_ctrl": 200,
+     "instr_imm": 200,
+     "instr_rt_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "result_wd3": 350,
+     "signimm_alusrc": 200,
+     "srcb": 200,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       200,
+       200
+      ]
+     ]
+    }
    },
    "changes": {
     "regs": {
@@ -1501,7 +2190,90 @@
     ],
     "latency": 400,
     "period": 600,
-    "waste": 200
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
    },
    "changes": {
     "regs": {
