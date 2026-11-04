@@ -390,9 +390,7 @@ class SingleCycle(StyleScene):
         self.add(*ovs, *self.slot_mobs, bars)
 
         # sweep in segments; highlight the stage when its first event starts
-        first = {}
-        for e in tm["events"]:
-            first.setdefault(e["stage"], e["start"])
+        first = self.stage_starts(st)
         stage_at = {}
         for sname in STAGES:
             if sname in first:
@@ -470,21 +468,30 @@ class SingleCycle(StyleScene):
         return None if x is None else str(x)
 
     # ---------------------------------------------------------- clock edge ---
+    @staticmethod
+    def stage_starts(st):
+        """Stage start = start of its main unit (adders run alongside, not as stage markers)."""
+        out = {}
+        for e in st["timing"]["events"]:
+            if e["comp"] not in ("ADD4", "ADDBR") or e["stage"] == "IF":
+                out[e["stage"]] = min(out.get(e["stage"], e["start"]), e["start"])
+        return out
+
     def stage_text(self, st, stage):
         v, f, k = st["values"], st["fields"], st["class"]
         dur = {e["comp"]: e["end"] - e["start"] for e in st["timing"]["events"]}
-        start = min(e["start"] for e in st["timing"]["events"] if e["stage"] == stage)
+        start = self.stage_starts(st)[stage]
         rs, rt = reg_name(f["rs"]), reg_name(f["rt"])
         head = f"{start}ps → {stage}: "
         if stage == "IF":
-            return [head + f"PC=0x{st['pc']:02X}로 명령어 메모리(instruction memory)를 읽는다 ({dur['IMEM']}ps).",
-                    f"동시에 PC+4 덧셈기(adder)가 0x{v['PCPlus4']:02X}를 계산한다 ({dur['ADD4']}ps)."]
+            return [head + f"명령어 메모리(instruction memory)에서 주소 0x{st['pc']:02X}의 명령어를 읽는다 ({dur['IMEM']}ps).",
+                    f"동시에 PC+4 덧셈기(adder)가 다음 PC 0x{v['PCPlus4']:02X} 계산 ({dur['ADD4']}ps)."]
         if stage == "ID":
             regs = f"{rs}={v['RD1']}" + (f", {rt}={v['RD2']}" if k in ("R", "SW", "BEQ") else "")
             l2 = "제어 유닛(control unit)은 opcode를 보고 제어 신호를 낸다 (0ps)."
             if k in ("I", "LW", "SW", "BEQ"):
                 l2 = f"부호 확장(sign extend): 즉치값 {v['SignImm']}. " + l2
-            return [head + f"레지스터 파일(register file)에서 {regs}를 읽는다 ({dur['RF']}ps).", l2]
+            return [head + f"레지스터 파일(register file) 읽기: {regs} ({dur['RF']}ps).", l2]
         if stage == "EX":
             if k in ("LW", "SW"):
                 l1 = f"ALU가 주소를 계산한다: {v['SrcA']} + {v['SignImm']} = {v['ALUResult']} ({dur['ALU']}ps)."
@@ -492,15 +499,17 @@ class SingleCycle(StyleScene):
                 l1 = f"ALU가 비교한다: {v['SrcA']} - {v['SrcB']} = {v['ALUResult']} → Zero={st['Zero']} ({dur['ALU']}ps)."
             else:
                 l1 = f"ALU가 {st['alu_op']} 연산: {v['SrcA']} {OPSYM[st['alu_op']]} {v['SrcB']} = {v['ALUResult']} ({dur['ALU']}ps)."
-            l2 = (f"분기 덧셈기: PC+4 + 즉치값×4 = 0x{v['PCBranch']:02X} ({dur['ADDBR']}ps)."
+            br = next((e for e in st["timing"]["events"] if e["comp"] == "ADDBR"), None)
+            l2 = (f"분기 덧셈기(200ps 시작 → {br['end']}ps): PC+4 + 즉치값×4 = 0x{v['PCBranch']:02X}."
+                  .replace("200ps", f"{br['start']}ps")
                   if k == "BEQ" else "")
             return [head + l1] + ([l2] if l2 else [])
         if stage == "MEM":
             if k == "LW":
-                return [head + f"데이터 메모리(data memory)의 주소 {v['ALUResult']}를 읽는다 → {v['ReadData']} ({dur['DMEM']}ps)."]
-            return [head + f"데이터 메모리 주소 {v['ALUResult']}에 {v['WriteData']}를 쓸 준비 ({dur['DMEM']}ps). "
-                    "실제 저장은 클록 에지에서."]
-        return [head + f"결과 {v['Result']}가 레지스터 파일의 {v['WriteReg']} 입력에 도착한다 ({dur['RF_W']}ps).",
+                return [head + f"데이터 메모리(data memory) 주소 {v['ALUResult']} 읽기 → 값 {v['ReadData']} ({dur['DMEM']}ps)."]
+            return [head + f"데이터 메모리(data memory) 주소 {v['ALUResult']}에 값 {v['WriteData']} 쓰기 준비 ({dur['DMEM']}ps).",
+                    "실제 저장은 클록 에지(clock edge)에서 일어난다."]
+        return [head + f"결과 값 {v['Result']} → 레지스터 파일의 {v['WriteReg']} 쓰기 입력에 도착 ({dur['RF_W']}ps).",
                 "실제 저장은 클록 에지(clock edge)에서 일어난다."]
 
     def clock_edge(self, st):
