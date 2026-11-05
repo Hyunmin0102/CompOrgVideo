@@ -415,7 +415,7 @@ MC_PORTS = [(t, *_px(x, y)) for t, x, y in [
     ("15:11", 398, 356), ("15:0", 398, 472)]]
 MC_FOUR = _px(712, 333)
 MC_SLOTS = {k: (_px(x, y), d) for k, x, y, d in [
-    ("PC", 112, 352, DOWN), ("Adr", 178, 298, UP), ("ReadData", 296, 285, UP), ("IR", 329, 252, UP),
+    ("PC", 112, 352, DOWN), ("Adr", 178, 298, UP), ("ReadData", 258, 412, DOWN), ("IR", 329, 252, UP),
     ("Data", 329, 440, DOWN), ("RD1", 660, 280, UP), ("RD2", 700, 326, DOWN), ("SignImm", 640, 466, UP),
     ("SrcA", 785, 270, UP), ("SrcB", 805, 333, UP), ("ALUResult", 912, 330, DOWN),
     ("Zero", 896, 278, UP), ("ALUOut", 1000, 350, DOWN), ("WriteReg", 452, 343, UP),
