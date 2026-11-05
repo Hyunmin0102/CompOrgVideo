@@ -99,6 +99,57 @@ def sel(v):
 
 
 # --- what each state uses (for painting) and how long its work takes ---------
+# Which register updates are the purpose of each state (H&H 7.4 text).  A, B,
+# Data and ALUOut also load in every other cycle, but those values are not used.
+INTENDED = {"S0": ["PC", "IR"], "S1": ["A", "B", "ALUOut"], "S2": ["ALUOut"], "S3": ["Data"],
+            "S4": ["RF"], "S5": ["MEM"], "S6": ["ALUOut"], "S7": ["RF"], "S8": ["PC"],
+            "S9": ["ALUOut"], "S10": ["RF"]}
+
+# wire -> (source component, destination component) for arrival-time computation
+WIRE_ENDS = {
+    "pcnext": ("PCMUX", "PC"), "pc_iord": ("PC", "IORDMUX"), "pc_srca": ("PC", "SRCAMUX"),
+    "iord_adr": ("IORDMUX", "MEM"), "aluout_iord": ("ALUOUT", "IORDMUX"), "mem_ir": ("MEM", "IR"),
+    "mem_data": ("MEM", "DATA"), "b_wd": ("B", "MEM"), "ir_ctrl": ("IR", "CTRL"), "ir_a1": ("IR", "RF"),
+    "ir_a2": ("IR", "RF"), "ir_rt_wr": ("IR", "REGDSTMUX"), "ir_rd_wr": ("IR", "REGDSTMUX"),
+    "ir_imm": ("IR", "SIGNEXT"), "writereg": ("REGDSTMUX", "RF_W"), "data_res": ("DATA", "RESMUX"),
+    "aluout_res": ("ALUOUT", "RESMUX"), "result_wd3": ("RESMUX", "RF_W"), "rd1_a": ("RF", "A"),
+    "rd2_b": ("RF", "B"), "a_srca": ("A", "SRCAMUX"), "b_srcb": ("B", "SRCBMUX"),
+    "four_srcb": ("CONST", "SRCBMUX"), "signimm_srcb": ("SIGNEXT", "SRCBMUX"),
+    "signimm_sl2": ("SIGNEXT", "SL2"), "sl2_srcb": ("SL2", "SRCBMUX"), "srca": ("SRCAMUX", "ALU"),
+    "srcb": ("SRCBMUX", "ALU"), "aluresult_aluout": ("ALU", "ALUOUT"), "aluresult_pcmux": ("ALU", "PCMUX"),
+    "aluout_pcmux": ("ALUOUT", "PCMUX"), "zero_and": ("ALU", "AND"), "branch_and": ("CTRL", "AND"),
+    "pcwrite_or": ("CTRL", "OR"), "and_or": ("AND", "OR"), "pcen": ("OR", "PC")}
+SOURCES = {"PC", "IR", "A", "B", "ALUOUT", "DATA", "CTRL", "CONST"}   # valid at the start of the cycle
+COMP_DELAY = {"MEM": DELAYS["mem"], "ALU": DELAYS["alu"], "RF": DELAYS["rf"], "RF_W": DELAYS["rf"]}
+
+
+def arrival(wires):
+    """Signal-valid time of every used wire and busy interval of every used part (ps)."""
+    end = {}
+
+    def t_end(comp):
+        if comp in SOURCES:
+            return 0
+        if comp not in end:
+            ins = [w for w in wires if WIRE_ENDS[w][1] == comp]
+            start = max((t_end(WIRE_ENDS[w][0]) for w in ins), default=0)
+            end[comp] = (start, start + COMP_DELAY.get(comp, 0))
+        return end[comp][1]
+    w_ps = {w: t_end(WIRE_ENDS[w][0]) for w in wires}
+    for w in wires:                      # parts that only receive (RF_W, IR, DATA ...)
+        d = WIRE_ENDS[w][1]
+        if d not in SOURCES:
+            t_end(d)
+    c_ps = {k: [list(v)] for k, v in end.items()}
+    for k in SOURCES - {"CONST"}:
+        ins = [w_ps[w] for w in wires if WIRE_ENDS[w][1] == k]
+        iv = [[0, 0]] if any(WIRE_ENDS[w][0] == k for w in wires) or not ins else []
+        if ins:                             # a register lights up again when its new input arrives
+            iv.append([max(ins), max(ins)])
+        c_ps[k] = iv
+    return w_ps, c_ps
+
+
 def state_work(s, c, op_name):
     D = DELAYS
     comps, wires, ev = ["PC", "CTRL"], [], []
@@ -199,6 +250,9 @@ def build():
         wd3 = None if c["MemtoReg"] == "X" else (DATA if c["MemtoReg"] == 1 else ALUOUT)
 
         comps, wires, ev, used = state_work(state, c, op)
+        w_ps, c_ps = arrival(wires)
+        if max([used] + list(w_ps.values())) != used:
+            raise RuntimeError(f"{state}: wire timing exceeds state work")
         changes = {"regs": {}, "mem": {}, "nonarch": {}}
         # --- clock edge ---
         nPC, nIR = (pcnext if pcen else PC), (rd if c["IRWrite"] else IR)
@@ -232,7 +286,10 @@ def build():
                        "WriteReg": None if writereg is None else reg_name(writereg),
                        "WD3": None if wd3 is None else s32(wd3)},
             "active": {"components": comps, "wires": wires},
-            "timing": {"events": ev, "used": used, "period": period, "waste": period - used},
+            "timing": {"events": ev, "used": used, "period": period, "waste": period - used,
+                       "wire_ps": w_ps, "comp_ps": {k: v for k, v in c_ps.items()
+                                                    if k in comps or k == "RF_W"}},
+            "intended": INTENDED[state] if state != "S8" or pcen else [],
             "changes": changes,
             "regs_after": {reg_name(i): s32(v) for i, v in enumerate(regs)},
             "mem_after": {f"0x{a:02X}": s32(mem.get(a, 0)) for a in sorted(dmem)},

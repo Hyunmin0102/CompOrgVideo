@@ -282,8 +282,91 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_pcmux": 100,
+     "four_srcb": 0,
+     "iord_adr": 0,
+     "mem_ir": 200,
+     "pc_iord": 0,
+     "pc_srca": 0,
+     "pcen": 0,
+     "pcnext": 100,
+     "pcwrite_or": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "OR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ],
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC",
+    "IR"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -439,8 +522,101 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "aluresult_aluout": 100,
+     "ir_a1": 0,
+     "ir_a2": 0,
+     "ir_ctrl": 0,
+     "ir_imm": 0,
+     "pc_srca": 0,
+     "rd1_a": 50,
+     "rd2_b": 50,
+     "signimm_sl2": 0,
+     "sl2_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SL2": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       50,
+       50
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "A",
+    "B",
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -579,8 +755,75 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "a_srca": 0,
+     "aluresult_aluout": 100,
+     "ir_imm": 0,
+     "signimm_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -712,8 +955,54 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluout_iord": 0,
+     "iord_adr": 0,
+     "mem_data": 200
+    },
+    "comp_ps": {
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "DATA": [
+      [
+       200,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "Data"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -848,8 +1137,61 @@
     ],
     "used": 50,
     "period": 200,
-    "waste": 150
+    "waste": 150,
+    "wire_ps": {
+     "data_res": 0,
+     "ir_rt_wr": 0,
+     "result_wd3": 0,
+     "writereg": 0
+    },
+    "comp_ps": {
+     "RESMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "RF_W": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "DATA": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "RF"
+   ],
    "changes": {
     "regs": {
      "$t0": 7
@@ -1001,8 +1343,91 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_pcmux": 100,
+     "four_srcb": 0,
+     "iord_adr": 0,
+     "mem_ir": 200,
+     "pc_iord": 0,
+     "pc_srca": 0,
+     "pcen": 0,
+     "pcnext": 100,
+     "pcwrite_or": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "OR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ],
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC",
+    "IR"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -1158,8 +1583,101 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "aluresult_aluout": 100,
+     "ir_a1": 0,
+     "ir_a2": 0,
+     "ir_ctrl": 0,
+     "ir_imm": 0,
+     "pc_srca": 0,
+     "rd1_a": 50,
+     "rd2_b": 50,
+     "signimm_sl2": 0,
+     "sl2_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SL2": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       50,
+       50
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "A",
+    "B",
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -1298,8 +1816,68 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "a_srca": 0,
+     "aluresult_aluout": 100,
+     "b_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -1433,8 +2011,61 @@
     ],
     "used": 50,
     "period": 200,
-    "waste": 150
+    "waste": 150,
+    "wire_ps": {
+     "aluout_res": 0,
+     "ir_rd_wr": 0,
+     "result_wd3": 0,
+     "writereg": 0
+    },
+    "comp_ps": {
+     "RESMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "RF_W": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "RF"
+   ],
    "changes": {
     "regs": {
      "$t1": 12
@@ -1586,8 +2217,91 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_pcmux": 100,
+     "four_srcb": 0,
+     "iord_adr": 0,
+     "mem_ir": 200,
+     "pc_iord": 0,
+     "pc_srca": 0,
+     "pcen": 0,
+     "pcnext": 100,
+     "pcwrite_or": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "OR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ],
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC",
+    "IR"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -1742,8 +2456,101 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "aluresult_aluout": 100,
+     "ir_a1": 0,
+     "ir_a2": 0,
+     "ir_ctrl": 0,
+     "ir_imm": 0,
+     "pc_srca": 0,
+     "rd1_a": 50,
+     "rd2_b": 50,
+     "signimm_sl2": 0,
+     "sl2_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SL2": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       50,
+       50
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "A",
+    "B",
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -1882,8 +2689,68 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "a_srca": 0,
+     "aluresult_aluout": 100,
+     "b_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -2017,8 +2884,61 @@
     ],
     "used": 50,
     "period": 200,
-    "waste": 150
+    "waste": 150,
+    "wire_ps": {
+     "aluout_res": 0,
+     "ir_rd_wr": 0,
+     "result_wd3": 0,
+     "writereg": 0
+    },
+    "comp_ps": {
+     "RESMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "RF_W": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "RF"
+   ],
    "changes": {
     "regs": {
      "$t2": 4
@@ -2170,8 +3090,91 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_pcmux": 100,
+     "four_srcb": 0,
+     "iord_adr": 0,
+     "mem_ir": 200,
+     "pc_iord": 0,
+     "pc_srca": 0,
+     "pcen": 0,
+     "pcnext": 100,
+     "pcwrite_or": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "OR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ],
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC",
+    "IR"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -2326,8 +3329,101 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "aluresult_aluout": 100,
+     "ir_a1": 0,
+     "ir_a2": 0,
+     "ir_ctrl": 0,
+     "ir_imm": 0,
+     "pc_srca": 0,
+     "rd1_a": 50,
+     "rd2_b": 50,
+     "signimm_sl2": 0,
+     "sl2_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SL2": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       50,
+       50
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "A",
+    "B",
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -2465,8 +3561,68 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "a_srca": 0,
+     "aluresult_aluout": 100,
+     "b_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -2600,8 +3756,61 @@
     ],
     "used": 50,
     "period": 200,
-    "waste": 150
+    "waste": 150,
+    "wire_ps": {
+     "aluout_res": 0,
+     "ir_rd_wr": 0,
+     "result_wd3": 0,
+     "writereg": 0
+    },
+    "comp_ps": {
+     "RESMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "RF_W": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "RF"
+   ],
    "changes": {
     "regs": {
      "$t3": 4
@@ -2753,8 +3962,91 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_pcmux": 100,
+     "four_srcb": 0,
+     "iord_adr": 0,
+     "mem_ir": 200,
+     "pc_iord": 0,
+     "pc_srca": 0,
+     "pcen": 0,
+     "pcnext": 100,
+     "pcwrite_or": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "OR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ],
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC",
+    "IR"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -2909,8 +4201,101 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "aluresult_aluout": 100,
+     "ir_a1": 0,
+     "ir_a2": 0,
+     "ir_ctrl": 0,
+     "ir_imm": 0,
+     "pc_srca": 0,
+     "rd1_a": 50,
+     "rd2_b": 50,
+     "signimm_sl2": 0,
+     "sl2_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SL2": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       50,
+       50
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "A",
+    "B",
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -3051,8 +4436,75 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "a_srca": 0,
+     "aluresult_aluout": 100,
+     "ir_imm": 0,
+     "signimm_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -3184,8 +4636,54 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluout_iord": 0,
+     "b_wd": 0,
+     "iord_adr": 0
+    },
+    "comp_ps": {
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "MEM"
+   ],
    "changes": {
     "regs": {},
     "mem": {
@@ -3338,8 +4836,91 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_pcmux": 100,
+     "four_srcb": 0,
+     "iord_adr": 0,
+     "mem_ir": 200,
+     "pc_iord": 0,
+     "pc_srca": 0,
+     "pcen": 0,
+     "pcnext": 100,
+     "pcwrite_or": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "OR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ],
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC",
+    "IR"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -3495,8 +5076,101 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "aluresult_aluout": 100,
+     "ir_a1": 0,
+     "ir_a2": 0,
+     "ir_ctrl": 0,
+     "ir_imm": 0,
+     "pc_srca": 0,
+     "rd1_a": 50,
+     "rd2_b": 50,
+     "signimm_sl2": 0,
+     "sl2_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SL2": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       50,
+       50
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "A",
+    "B",
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -3635,8 +5309,68 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "a_srca": 0,
+     "aluresult_aluout": 100,
+     "b_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -3770,8 +5504,61 @@
     ],
     "used": 50,
     "period": 200,
-    "waste": 150
+    "waste": 150,
+    "wire_ps": {
+     "aluout_res": 0,
+     "ir_rd_wr": 0,
+     "result_wd3": 0,
+     "writereg": 0
+    },
+    "comp_ps": {
+     "RESMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "RF_W": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "RF"
+   ],
    "changes": {
     "regs": {
      "$t4": 1
@@ -3923,8 +5710,91 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_pcmux": 100,
+     "four_srcb": 0,
+     "iord_adr": 0,
+     "mem_ir": 200,
+     "pc_iord": 0,
+     "pc_srca": 0,
+     "pcen": 0,
+     "pcnext": 100,
+     "pcwrite_or": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "OR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ],
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC",
+    "IR"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -4079,8 +5949,101 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "aluresult_aluout": 100,
+     "ir_a1": 0,
+     "ir_a2": 0,
+     "ir_ctrl": 0,
+     "ir_imm": 0,
+     "pc_srca": 0,
+     "rd1_a": 50,
+     "rd2_b": 50,
+     "signimm_sl2": 0,
+     "sl2_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SL2": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       50,
+       50
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "A",
+    "B",
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -4227,8 +6190,91 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "a_srca": 0,
+     "aluout_pcmux": 0,
+     "and_or": 100,
+     "b_srcb": 0,
+     "branch_and": 0,
+     "pcen": 100,
+     "pcnext": 0,
+     "srca": 0,
+     "srcb": 0,
+     "zero_and": 100
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "AND": [
+      [
+       100,
+       100
+      ]
+     ],
+     "OR": [
+      [
+       100,
+       100
+      ]
+     ],
+     "PCMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "A": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -4379,8 +6425,91 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_pcmux": 100,
+     "four_srcb": 0,
+     "iord_adr": 0,
+     "mem_ir": 200,
+     "pc_iord": 0,
+     "pc_srca": 0,
+     "pcen": 0,
+     "pcnext": 100,
+     "pcwrite_or": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "OR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ],
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC",
+    "IR"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -4536,8 +6665,101 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "aluresult_aluout": 100,
+     "ir_a1": 0,
+     "ir_a2": 0,
+     "ir_ctrl": 0,
+     "ir_imm": 0,
+     "pc_srca": 0,
+     "rd1_a": 50,
+     "rd2_b": 50,
+     "signimm_sl2": 0,
+     "sl2_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SL2": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       50,
+       50
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "A",
+    "B",
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -4677,8 +6899,75 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "a_srca": 0,
+     "aluresult_aluout": 100,
+     "ir_imm": 0,
+     "signimm_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -4812,8 +7101,61 @@
     ],
     "used": 50,
     "period": 200,
-    "waste": 150
+    "waste": 150,
+    "wire_ps": {
+     "aluout_res": 0,
+     "ir_rt_wr": 0,
+     "result_wd3": 0,
+     "writereg": 0
+    },
+    "comp_ps": {
+     "RESMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "RF_W": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "RF"
+   ],
    "changes": {
     "regs": {
      "$t5": 14
@@ -4965,8 +7307,91 @@
     ],
     "used": 200,
     "period": 200,
-    "waste": 0
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_pcmux": 100,
+     "four_srcb": 0,
+     "iord_adr": 0,
+     "mem_ir": 200,
+     "pc_iord": 0,
+     "pc_srca": 0,
+     "pcen": 0,
+     "pcnext": 100,
+     "pcwrite_or": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "IORDMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "MEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "OR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ],
+      [
+       100,
+       100
+      ]
+     ]
+    }
    },
+   "intended": [
+    "PC",
+    "IR"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -5122,8 +7547,101 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "aluresult_aluout": 100,
+     "ir_a1": 0,
+     "ir_a2": 0,
+     "ir_ctrl": 0,
+     "ir_imm": 0,
+     "pc_srca": 0,
+     "rd1_a": 50,
+     "rd2_b": 50,
+     "signimm_sl2": 0,
+     "sl2_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SL2": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       50,
+       50
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "A",
+    "B",
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -5262,8 +7780,68 @@
     ],
     "used": 100,
     "period": 200,
-    "waste": 100
+    "waste": 100,
+    "wire_ps": {
+     "a_srca": 0,
+     "aluresult_aluout": 100,
+     "b_srcb": 0,
+     "srca": 0,
+     "srcb": 0
+    },
+    "comp_ps": {
+     "SRCAMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "SRCBMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALU": [
+      [
+       0,
+       100
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       100,
+       100
+      ]
+     ],
+     "A": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "ALUOut"
+   ],
    "changes": {
     "regs": {},
     "mem": {},
@@ -5397,8 +7975,61 @@
     ],
     "used": 50,
     "period": 200,
-    "waste": 150
+    "waste": 150,
+    "wire_ps": {
+     "aluout_res": 0,
+     "ir_rd_wr": 0,
+     "result_wd3": 0,
+     "writereg": 0
+    },
+    "comp_ps": {
+     "RESMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       0,
+       0
+      ]
+     ],
+     "RF_W": [
+      [
+       0,
+       50
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "CTRL": [
+      [
+       0,
+       0
+      ]
+     ],
+     "ALUOUT": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
    },
+   "intended": [
+    "RF"
+   ],
    "changes": {
     "regs": {
      "$t6": 7
