@@ -88,6 +88,152 @@
     "RegWrite": 1
    }
   },
+  "wire_ends": {
+   "pcnext": [
+    "PCMUX",
+    "PC"
+   ],
+   "pc_iord": [
+    "PC",
+    "IORDMUX"
+   ],
+   "pc_srca": [
+    "PC",
+    "SRCAMUX"
+   ],
+   "iord_adr": [
+    "IORDMUX",
+    "MEM"
+   ],
+   "aluout_iord": [
+    "ALUOUT",
+    "IORDMUX"
+   ],
+   "mem_ir": [
+    "MEM",
+    "IR"
+   ],
+   "mem_data": [
+    "MEM",
+    "DATA"
+   ],
+   "b_wd": [
+    "B",
+    "MEM"
+   ],
+   "ir_ctrl": [
+    "IR",
+    "CTRL"
+   ],
+   "ir_a1": [
+    "IR",
+    "RF"
+   ],
+   "ir_a2": [
+    "IR",
+    "RF"
+   ],
+   "ir_rt_wr": [
+    "IR",
+    "REGDSTMUX"
+   ],
+   "ir_rd_wr": [
+    "IR",
+    "REGDSTMUX"
+   ],
+   "ir_imm": [
+    "IR",
+    "SIGNEXT"
+   ],
+   "writereg": [
+    "REGDSTMUX",
+    "RF_W"
+   ],
+   "data_res": [
+    "DATA",
+    "RESMUX"
+   ],
+   "aluout_res": [
+    "ALUOUT",
+    "RESMUX"
+   ],
+   "result_wd3": [
+    "RESMUX",
+    "RF_W"
+   ],
+   "rd1_a": [
+    "RF",
+    "A"
+   ],
+   "rd2_b": [
+    "RF",
+    "B"
+   ],
+   "a_srca": [
+    "A",
+    "SRCAMUX"
+   ],
+   "b_srcb": [
+    "B",
+    "SRCBMUX"
+   ],
+   "four_srcb": [
+    "CONST",
+    "SRCBMUX"
+   ],
+   "signimm_srcb": [
+    "SIGNEXT",
+    "SRCBMUX"
+   ],
+   "signimm_sl2": [
+    "SIGNEXT",
+    "SL2"
+   ],
+   "sl2_srcb": [
+    "SL2",
+    "SRCBMUX"
+   ],
+   "srca": [
+    "SRCAMUX",
+    "ALU"
+   ],
+   "srcb": [
+    "SRCBMUX",
+    "ALU"
+   ],
+   "aluresult_aluout": [
+    "ALU",
+    "ALUOUT"
+   ],
+   "aluresult_pcmux": [
+    "ALU",
+    "PCMUX"
+   ],
+   "aluout_pcmux": [
+    "ALUOUT",
+    "PCMUX"
+   ],
+   "zero_and": [
+    "ALU",
+    "AND"
+   ],
+   "branch_and": [
+    "CTRL",
+    "AND"
+   ],
+   "pcwrite_or": [
+    "CTRL",
+    "OR"
+   ],
+   "and_or": [
+    "AND",
+    "OR"
+   ],
+   "pcen": [
+    "OR",
+    "PC"
+   ]
+  },
   "assumptions": [
    "클록 주기: 슬라이드에 multi-cycle 클록 값이 없음. L10 90의 지연(메모리 200, ALU 100, 레지스터 파일 50, 나머지·레지스터 오버헤드 0ps)으로 각 상태의 가장 긴 일을 계산하면 메모리 접근(S0, S3, S5) 200ps가 최대 → 클록 200ps.",
    "ALUControl 3비트 값은 H&H 7장 인코딩(add 010, sub 110, and 000, or 001, slt 111). ALU 디코더(ALUOp 00=add, 01=sub, 10=funct)도 H&H 표를 따름 — 슬라이드에는 블록 그림만 있음.",
@@ -339,12 +485,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       200,
-       200
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -360,13 +500,70 @@
        100,
        100
       ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
      ]
     }
    },
    "intended": [
-    "PC",
-    "IR"
+    "IR",
+    "PC"
    ],
+   "jobs": [
+    {
+     "target": "IR",
+     "wires": [
+      "pc_iord",
+      "iord_adr",
+      "mem_ir"
+     ],
+     "comps": [
+      "PC",
+      "IORDMUX",
+      "MEM",
+      "IR"
+     ]
+    },
+    {
+     "target": "PC",
+     "wires": [
+      "four_srcb",
+      "pc_srca",
+      "pcwrite_or",
+      "pcen",
+      "srca",
+      "srcb",
+      "aluresult_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "SRCBMUX",
+      "PC",
+      "SRCAMUX",
+      "CTRL",
+      "OR",
+      "ALU",
+      "PCMUX"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "four_srcb": 0,
+    "srcb": 1,
+    "aluresult_pcmux": 2,
+    "pc_iord": 0,
+    "iord_adr": 1,
+    "mem_ir": 2,
+    "pcwrite_or": 0,
+    "pcen": 1,
+    "pcnext": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -574,12 +771,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -598,16 +789,22 @@
        50
       ]
      ],
-     "B": [
-      [
-       50,
-       50
-      ]
-     ],
      "PC": [
       [
        0,
        0
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
       ]
      ]
     }
@@ -617,6 +814,61 @@
     "B",
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "A,B",
+     "wires": [
+      "ir_a1",
+      "ir_a2",
+      "ir_ctrl",
+      "rd1_a",
+      "rd2_b"
+     ],
+     "comps": [
+      "IR",
+      "RF",
+      "CTRL",
+      "A",
+      "B"
+     ]
+    },
+    {
+     "target": "ALUOut",
+     "wires": [
+      "ir_imm",
+      "pc_srca",
+      "signimm_sl2",
+      "srca",
+      "sl2_srcb",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "IR",
+      "SIGNEXT",
+      "PC",
+      "SRCAMUX",
+      "SL2",
+      "ALU",
+      "SRCBMUX",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_sl2": 1,
+    "sl2_srcb": 2,
+    "srcb": 3,
+    "aluresult_aluout": 4,
+    "ir_a1": 0,
+    "ir_a2": 0,
+    "ir_ctrl": 0,
+    "rd1_a": 1,
+    "rd2_b": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -789,12 +1041,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -818,12 +1064,48 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "ALUOut",
+     "wires": [
+      "a_srca",
+      "ir_imm",
+      "signimm_srcb",
+      "srca",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "A",
+      "SRCAMUX",
+      "IR",
+      "SIGNEXT",
+      "SRCBMUX",
+      "ALU",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "a_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_srcb": 1,
+    "srcb": 2,
+    "aluresult_aluout": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -1003,6 +1285,27 @@
    "intended": [
     "Data"
    ],
+   "jobs": [
+    {
+     "target": "Data",
+     "wires": [
+      "aluout_iord",
+      "iord_adr",
+      "mem_data"
+     ],
+     "comps": [
+      "ALUOUT",
+      "IORDMUX",
+      "MEM",
+      "DATA"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "aluout_iord": 0,
+    "iord_adr": 1,
+    "mem_data": 2
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -1163,12 +1466,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -1186,12 +1483,42 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "RF"
    ],
+   "jobs": [
+    {
+     "target": "RF",
+     "wires": [
+      "data_res",
+      "ir_rt_wr",
+      "result_wd3",
+      "writereg"
+     ],
+     "comps": [
+      "DATA",
+      "RESMUX",
+      "IR",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "data_res": 0,
+    "ir_rt_wr": 0,
+    "result_wd3": 1,
+    "writereg": 1
+   },
    "changes": {
     "regs": {
      "$t0": 7
@@ -1400,12 +1727,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       200,
-       200
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -1421,13 +1742,70 @@
        100,
        100
       ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
      ]
     }
    },
    "intended": [
-    "PC",
-    "IR"
+    "IR",
+    "PC"
    ],
+   "jobs": [
+    {
+     "target": "IR",
+     "wires": [
+      "pc_iord",
+      "iord_adr",
+      "mem_ir"
+     ],
+     "comps": [
+      "PC",
+      "IORDMUX",
+      "MEM",
+      "IR"
+     ]
+    },
+    {
+     "target": "PC",
+     "wires": [
+      "four_srcb",
+      "pc_srca",
+      "pcwrite_or",
+      "pcen",
+      "srca",
+      "srcb",
+      "aluresult_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "SRCBMUX",
+      "PC",
+      "SRCAMUX",
+      "CTRL",
+      "OR",
+      "ALU",
+      "PCMUX"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "four_srcb": 0,
+    "srcb": 1,
+    "aluresult_pcmux": 2,
+    "pc_iord": 0,
+    "iord_adr": 1,
+    "mem_ir": 2,
+    "pcwrite_or": 0,
+    "pcen": 1,
+    "pcnext": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -1635,12 +2013,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -1659,16 +2031,22 @@
        50
       ]
      ],
-     "B": [
-      [
-       50,
-       50
-      ]
-     ],
      "PC": [
       [
        0,
        0
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
       ]
      ]
     }
@@ -1678,6 +2056,61 @@
     "B",
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "A,B",
+     "wires": [
+      "ir_a1",
+      "ir_a2",
+      "ir_ctrl",
+      "rd1_a",
+      "rd2_b"
+     ],
+     "comps": [
+      "IR",
+      "RF",
+      "CTRL",
+      "A",
+      "B"
+     ]
+    },
+    {
+     "target": "ALUOut",
+     "wires": [
+      "ir_imm",
+      "pc_srca",
+      "signimm_sl2",
+      "srca",
+      "sl2_srcb",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "IR",
+      "SIGNEXT",
+      "PC",
+      "SRCAMUX",
+      "SL2",
+      "ALU",
+      "SRCBMUX",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_sl2": 1,
+    "sl2_srcb": 2,
+    "srcb": 3,
+    "aluresult_aluout": 4,
+    "ir_a1": 0,
+    "ir_a2": 0,
+    "ir_ctrl": 0,
+    "rd1_a": 1,
+    "rd2_b": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -1861,13 +2294,13 @@
        0
       ]
      ],
-     "B": [
+     "PC": [
       [
        0,
        0
       ]
      ],
-     "PC": [
+     "B": [
       [
        0,
        0
@@ -1878,6 +2311,33 @@
    "intended": [
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "ALUOut",
+     "wires": [
+      "a_srca",
+      "b_srcb",
+      "srca",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "A",
+      "SRCAMUX",
+      "B",
+      "SRCBMUX",
+      "ALU",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "a_srca": 0,
+    "srca": 1,
+    "b_srcb": 0,
+    "srcb": 1,
+    "aluresult_aluout": 2
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -2037,12 +2497,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -2060,12 +2514,42 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "RF"
    ],
+   "jobs": [
+    {
+     "target": "RF",
+     "wires": [
+      "aluout_res",
+      "ir_rd_wr",
+      "result_wd3",
+      "writereg"
+     ],
+     "comps": [
+      "ALUOUT",
+      "RESMUX",
+      "IR",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "aluout_res": 0,
+    "ir_rd_wr": 0,
+    "result_wd3": 1,
+    "writereg": 1
+   },
    "changes": {
     "regs": {
      "$t1": 12
@@ -2274,12 +2758,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       200,
-       200
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -2295,13 +2773,70 @@
        100,
        100
       ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
      ]
     }
    },
    "intended": [
-    "PC",
-    "IR"
+    "IR",
+    "PC"
    ],
+   "jobs": [
+    {
+     "target": "IR",
+     "wires": [
+      "pc_iord",
+      "iord_adr",
+      "mem_ir"
+     ],
+     "comps": [
+      "PC",
+      "IORDMUX",
+      "MEM",
+      "IR"
+     ]
+    },
+    {
+     "target": "PC",
+     "wires": [
+      "four_srcb",
+      "pc_srca",
+      "pcwrite_or",
+      "pcen",
+      "srca",
+      "srcb",
+      "aluresult_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "SRCBMUX",
+      "PC",
+      "SRCAMUX",
+      "CTRL",
+      "OR",
+      "ALU",
+      "PCMUX"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "four_srcb": 0,
+    "srcb": 1,
+    "aluresult_pcmux": 2,
+    "pc_iord": 0,
+    "iord_adr": 1,
+    "mem_ir": 2,
+    "pcwrite_or": 0,
+    "pcen": 1,
+    "pcnext": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -2508,12 +3043,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -2532,16 +3061,22 @@
        50
       ]
      ],
-     "B": [
-      [
-       50,
-       50
-      ]
-     ],
      "PC": [
       [
        0,
        0
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
       ]
      ]
     }
@@ -2551,6 +3086,61 @@
     "B",
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "A,B",
+     "wires": [
+      "ir_a1",
+      "ir_a2",
+      "ir_ctrl",
+      "rd1_a",
+      "rd2_b"
+     ],
+     "comps": [
+      "IR",
+      "RF",
+      "CTRL",
+      "A",
+      "B"
+     ]
+    },
+    {
+     "target": "ALUOut",
+     "wires": [
+      "ir_imm",
+      "pc_srca",
+      "signimm_sl2",
+      "srca",
+      "sl2_srcb",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "IR",
+      "SIGNEXT",
+      "PC",
+      "SRCAMUX",
+      "SL2",
+      "ALU",
+      "SRCBMUX",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_sl2": 1,
+    "sl2_srcb": 2,
+    "srcb": 3,
+    "aluresult_aluout": 4,
+    "ir_a1": 0,
+    "ir_a2": 0,
+    "ir_ctrl": 0,
+    "rd1_a": 1,
+    "rd2_b": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -2734,13 +3324,13 @@
        0
       ]
      ],
-     "B": [
+     "PC": [
       [
        0,
        0
       ]
      ],
-     "PC": [
+     "B": [
       [
        0,
        0
@@ -2751,6 +3341,33 @@
    "intended": [
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "ALUOut",
+     "wires": [
+      "a_srca",
+      "b_srcb",
+      "srca",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "A",
+      "SRCAMUX",
+      "B",
+      "SRCBMUX",
+      "ALU",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "a_srca": 0,
+    "srca": 1,
+    "b_srcb": 0,
+    "srcb": 1,
+    "aluresult_aluout": 2
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -2910,12 +3527,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -2933,12 +3544,42 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "RF"
    ],
+   "jobs": [
+    {
+     "target": "RF",
+     "wires": [
+      "aluout_res",
+      "ir_rd_wr",
+      "result_wd3",
+      "writereg"
+     ],
+     "comps": [
+      "ALUOUT",
+      "RESMUX",
+      "IR",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "aluout_res": 0,
+    "ir_rd_wr": 0,
+    "result_wd3": 1,
+    "writereg": 1
+   },
    "changes": {
     "regs": {
      "$t2": 4
@@ -3147,12 +3788,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       200,
-       200
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -3168,13 +3803,70 @@
        100,
        100
       ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
      ]
     }
    },
    "intended": [
-    "PC",
-    "IR"
+    "IR",
+    "PC"
    ],
+   "jobs": [
+    {
+     "target": "IR",
+     "wires": [
+      "pc_iord",
+      "iord_adr",
+      "mem_ir"
+     ],
+     "comps": [
+      "PC",
+      "IORDMUX",
+      "MEM",
+      "IR"
+     ]
+    },
+    {
+     "target": "PC",
+     "wires": [
+      "four_srcb",
+      "pc_srca",
+      "pcwrite_or",
+      "pcen",
+      "srca",
+      "srcb",
+      "aluresult_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "SRCBMUX",
+      "PC",
+      "SRCAMUX",
+      "CTRL",
+      "OR",
+      "ALU",
+      "PCMUX"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "four_srcb": 0,
+    "srcb": 1,
+    "aluresult_pcmux": 2,
+    "pc_iord": 0,
+    "iord_adr": 1,
+    "mem_ir": 2,
+    "pcwrite_or": 0,
+    "pcen": 1,
+    "pcnext": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -3381,12 +4073,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -3405,16 +4091,22 @@
        50
       ]
      ],
-     "B": [
-      [
-       50,
-       50
-      ]
-     ],
      "PC": [
       [
        0,
        0
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
       ]
      ]
     }
@@ -3424,6 +4116,61 @@
     "B",
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "A,B",
+     "wires": [
+      "ir_a1",
+      "ir_a2",
+      "ir_ctrl",
+      "rd1_a",
+      "rd2_b"
+     ],
+     "comps": [
+      "IR",
+      "RF",
+      "CTRL",
+      "A",
+      "B"
+     ]
+    },
+    {
+     "target": "ALUOut",
+     "wires": [
+      "ir_imm",
+      "pc_srca",
+      "signimm_sl2",
+      "srca",
+      "sl2_srcb",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "IR",
+      "SIGNEXT",
+      "PC",
+      "SRCAMUX",
+      "SL2",
+      "ALU",
+      "SRCBMUX",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_sl2": 1,
+    "sl2_srcb": 2,
+    "srcb": 3,
+    "aluresult_aluout": 4,
+    "ir_a1": 0,
+    "ir_a2": 0,
+    "ir_ctrl": 0,
+    "rd1_a": 1,
+    "rd2_b": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -3606,13 +4353,13 @@
        0
       ]
      ],
-     "B": [
+     "PC": [
       [
        0,
        0
       ]
      ],
-     "PC": [
+     "B": [
       [
        0,
        0
@@ -3623,6 +4370,33 @@
    "intended": [
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "ALUOut",
+     "wires": [
+      "a_srca",
+      "b_srcb",
+      "srca",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "A",
+      "SRCAMUX",
+      "B",
+      "SRCBMUX",
+      "ALU",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "a_srca": 0,
+    "srca": 1,
+    "b_srcb": 0,
+    "srcb": 1,
+    "aluresult_aluout": 2
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -3782,12 +4556,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -3805,12 +4573,42 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "RF"
    ],
+   "jobs": [
+    {
+     "target": "RF",
+     "wires": [
+      "aluout_res",
+      "ir_rd_wr",
+      "result_wd3",
+      "writereg"
+     ],
+     "comps": [
+      "ALUOUT",
+      "RESMUX",
+      "IR",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "aluout_res": 0,
+    "ir_rd_wr": 0,
+    "result_wd3": 1,
+    "writereg": 1
+   },
    "changes": {
     "regs": {
      "$t3": 4
@@ -4019,12 +4817,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       200,
-       200
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -4040,13 +4832,70 @@
        100,
        100
       ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
      ]
     }
    },
    "intended": [
-    "PC",
-    "IR"
+    "IR",
+    "PC"
    ],
+   "jobs": [
+    {
+     "target": "IR",
+     "wires": [
+      "pc_iord",
+      "iord_adr",
+      "mem_ir"
+     ],
+     "comps": [
+      "PC",
+      "IORDMUX",
+      "MEM",
+      "IR"
+     ]
+    },
+    {
+     "target": "PC",
+     "wires": [
+      "four_srcb",
+      "pc_srca",
+      "pcwrite_or",
+      "pcen",
+      "srca",
+      "srcb",
+      "aluresult_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "SRCBMUX",
+      "PC",
+      "SRCAMUX",
+      "CTRL",
+      "OR",
+      "ALU",
+      "PCMUX"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "four_srcb": 0,
+    "srcb": 1,
+    "aluresult_pcmux": 2,
+    "pc_iord": 0,
+    "iord_adr": 1,
+    "mem_ir": 2,
+    "pcwrite_or": 0,
+    "pcen": 1,
+    "pcnext": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -4253,12 +5102,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -4277,16 +5120,22 @@
        50
       ]
      ],
-     "B": [
-      [
-       50,
-       50
-      ]
-     ],
      "PC": [
       [
        0,
        0
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
       ]
      ]
     }
@@ -4296,6 +5145,61 @@
     "B",
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "A,B",
+     "wires": [
+      "ir_a1",
+      "ir_a2",
+      "ir_ctrl",
+      "rd1_a",
+      "rd2_b"
+     ],
+     "comps": [
+      "IR",
+      "RF",
+      "CTRL",
+      "A",
+      "B"
+     ]
+    },
+    {
+     "target": "ALUOut",
+     "wires": [
+      "ir_imm",
+      "pc_srca",
+      "signimm_sl2",
+      "srca",
+      "sl2_srcb",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "IR",
+      "SIGNEXT",
+      "PC",
+      "SRCAMUX",
+      "SL2",
+      "ALU",
+      "SRCBMUX",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_sl2": 1,
+    "sl2_srcb": 2,
+    "srcb": 3,
+    "aluresult_aluout": 4,
+    "ir_a1": 0,
+    "ir_a2": 0,
+    "ir_ctrl": 0,
+    "rd1_a": 1,
+    "rd2_b": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -4470,12 +5374,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -4499,12 +5397,48 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "ALUOut",
+     "wires": [
+      "a_srca",
+      "ir_imm",
+      "signimm_srcb",
+      "srca",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "A",
+      "SRCAMUX",
+      "IR",
+      "SIGNEXT",
+      "SRCBMUX",
+      "ALU",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "a_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_srcb": 1,
+    "srcb": 2,
+    "aluresult_aluout": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -4667,13 +5601,13 @@
        0
       ]
      ],
-     "B": [
+     "PC": [
       [
        0,
        0
       ]
      ],
-     "PC": [
+     "B": [
       [
        0,
        0
@@ -4684,6 +5618,27 @@
    "intended": [
     "MEM"
    ],
+   "jobs": [
+    {
+     "target": "MEM",
+     "wires": [
+      "aluout_iord",
+      "b_wd",
+      "iord_adr"
+     ],
+     "comps": [
+      "ALUOUT",
+      "IORDMUX",
+      "B",
+      "MEM"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "aluout_iord": 0,
+    "b_wd": 0,
+    "iord_adr": 1
+   },
    "changes": {
     "regs": {},
     "mem": {
@@ -4893,12 +5848,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       200,
-       200
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -4914,13 +5863,70 @@
        100,
        100
       ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
      ]
     }
    },
    "intended": [
-    "PC",
-    "IR"
+    "IR",
+    "PC"
    ],
+   "jobs": [
+    {
+     "target": "IR",
+     "wires": [
+      "pc_iord",
+      "iord_adr",
+      "mem_ir"
+     ],
+     "comps": [
+      "PC",
+      "IORDMUX",
+      "MEM",
+      "IR"
+     ]
+    },
+    {
+     "target": "PC",
+     "wires": [
+      "four_srcb",
+      "pc_srca",
+      "pcwrite_or",
+      "pcen",
+      "srca",
+      "srcb",
+      "aluresult_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "SRCBMUX",
+      "PC",
+      "SRCAMUX",
+      "CTRL",
+      "OR",
+      "ALU",
+      "PCMUX"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "four_srcb": 0,
+    "srcb": 1,
+    "aluresult_pcmux": 2,
+    "pc_iord": 0,
+    "iord_adr": 1,
+    "mem_ir": 2,
+    "pcwrite_or": 0,
+    "pcen": 1,
+    "pcnext": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -5128,12 +6134,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -5152,16 +6152,22 @@
        50
       ]
      ],
-     "B": [
-      [
-       50,
-       50
-      ]
-     ],
      "PC": [
       [
        0,
        0
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
       ]
      ]
     }
@@ -5171,6 +6177,61 @@
     "B",
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "A,B",
+     "wires": [
+      "ir_a1",
+      "ir_a2",
+      "ir_ctrl",
+      "rd1_a",
+      "rd2_b"
+     ],
+     "comps": [
+      "IR",
+      "RF",
+      "CTRL",
+      "A",
+      "B"
+     ]
+    },
+    {
+     "target": "ALUOut",
+     "wires": [
+      "ir_imm",
+      "pc_srca",
+      "signimm_sl2",
+      "srca",
+      "sl2_srcb",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "IR",
+      "SIGNEXT",
+      "PC",
+      "SRCAMUX",
+      "SL2",
+      "ALU",
+      "SRCBMUX",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_sl2": 1,
+    "sl2_srcb": 2,
+    "srcb": 3,
+    "aluresult_aluout": 4,
+    "ir_a1": 0,
+    "ir_a2": 0,
+    "ir_ctrl": 0,
+    "rd1_a": 1,
+    "rd2_b": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -5354,13 +6415,13 @@
        0
       ]
      ],
-     "B": [
+     "PC": [
       [
        0,
        0
       ]
      ],
-     "PC": [
+     "B": [
       [
        0,
        0
@@ -5371,6 +6432,33 @@
    "intended": [
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "ALUOut",
+     "wires": [
+      "a_srca",
+      "b_srcb",
+      "srca",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "A",
+      "SRCAMUX",
+      "B",
+      "SRCBMUX",
+      "ALU",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "a_srca": 0,
+    "srca": 1,
+    "b_srcb": 0,
+    "srcb": 1,
+    "aluresult_aluout": 2
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -5530,12 +6618,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -5553,12 +6635,42 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "RF"
    ],
+   "jobs": [
+    {
+     "target": "RF",
+     "wires": [
+      "aluout_res",
+      "ir_rd_wr",
+      "result_wd3",
+      "writereg"
+     ],
+     "comps": [
+      "ALUOUT",
+      "RESMUX",
+      "IR",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "aluout_res": 0,
+    "ir_rd_wr": 0,
+    "result_wd3": 1,
+    "writereg": 1
+   },
    "changes": {
     "regs": {
      "$t4": 1
@@ -5767,12 +6879,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       200,
-       200
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -5788,13 +6894,70 @@
        100,
        100
       ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
      ]
     }
    },
    "intended": [
-    "PC",
-    "IR"
+    "IR",
+    "PC"
    ],
+   "jobs": [
+    {
+     "target": "IR",
+     "wires": [
+      "pc_iord",
+      "iord_adr",
+      "mem_ir"
+     ],
+     "comps": [
+      "PC",
+      "IORDMUX",
+      "MEM",
+      "IR"
+     ]
+    },
+    {
+     "target": "PC",
+     "wires": [
+      "four_srcb",
+      "pc_srca",
+      "pcwrite_or",
+      "pcen",
+      "srca",
+      "srcb",
+      "aluresult_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "SRCBMUX",
+      "PC",
+      "SRCAMUX",
+      "CTRL",
+      "OR",
+      "ALU",
+      "PCMUX"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "four_srcb": 0,
+    "srcb": 1,
+    "aluresult_pcmux": 2,
+    "pc_iord": 0,
+    "iord_adr": 1,
+    "mem_ir": 2,
+    "pcwrite_or": 0,
+    "pcen": 1,
+    "pcnext": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -6001,12 +7164,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -6025,16 +7182,22 @@
        50
       ]
      ],
-     "B": [
-      [
-       50,
-       50
-      ]
-     ],
      "PC": [
       [
        0,
        0
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
       ]
      ]
     }
@@ -6044,6 +7207,61 @@
     "B",
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "A,B",
+     "wires": [
+      "ir_a1",
+      "ir_a2",
+      "ir_ctrl",
+      "rd1_a",
+      "rd2_b"
+     ],
+     "comps": [
+      "IR",
+      "RF",
+      "CTRL",
+      "A",
+      "B"
+     ]
+    },
+    {
+     "target": "ALUOut",
+     "wires": [
+      "ir_imm",
+      "pc_srca",
+      "signimm_sl2",
+      "srca",
+      "sl2_srcb",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "IR",
+      "SIGNEXT",
+      "PC",
+      "SRCAMUX",
+      "SL2",
+      "ALU",
+      "SRCBMUX",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_sl2": 1,
+    "sl2_srcb": 2,
+    "srcb": 3,
+    "aluresult_aluout": 4,
+    "ir_a1": 0,
+    "ir_a2": 0,
+    "ir_ctrl": 0,
+    "rd1_a": 1,
+    "rd2_b": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -6258,16 +7476,16 @@
        0
       ]
      ],
-     "B": [
-      [
-       0,
-       0
-      ]
-     ],
      "PC": [
       [
        100,
        100
+      ]
+     ],
+     "B": [
+      [
+       0,
+       0
       ]
      ]
     }
@@ -6275,6 +7493,48 @@
    "intended": [
     "PC"
    ],
+   "jobs": [
+    {
+     "target": "PC",
+     "wires": [
+      "a_srca",
+      "aluout_pcmux",
+      "b_srcb",
+      "branch_and",
+      "pcnext",
+      "srca",
+      "srcb",
+      "zero_and",
+      "and_or",
+      "pcen"
+     ],
+     "comps": [
+      "A",
+      "SRCAMUX",
+      "ALUOUT",
+      "PCMUX",
+      "B",
+      "SRCBMUX",
+      "CTRL",
+      "AND",
+      "PC",
+      "ALU",
+      "OR"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "a_srca": 0,
+    "aluout_pcmux": 0,
+    "branch_and": 0,
+    "srca": 1,
+    "b_srcb": 0,
+    "srcb": 1,
+    "zero_and": 2,
+    "and_or": 3,
+    "pcen": 4,
+    "pcnext": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -6482,12 +7742,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       200,
-       200
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -6503,13 +7757,70 @@
        100,
        100
       ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
      ]
     }
    },
    "intended": [
-    "PC",
-    "IR"
+    "IR",
+    "PC"
    ],
+   "jobs": [
+    {
+     "target": "IR",
+     "wires": [
+      "pc_iord",
+      "iord_adr",
+      "mem_ir"
+     ],
+     "comps": [
+      "PC",
+      "IORDMUX",
+      "MEM",
+      "IR"
+     ]
+    },
+    {
+     "target": "PC",
+     "wires": [
+      "four_srcb",
+      "pc_srca",
+      "pcwrite_or",
+      "pcen",
+      "srca",
+      "srcb",
+      "aluresult_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "SRCBMUX",
+      "PC",
+      "SRCAMUX",
+      "CTRL",
+      "OR",
+      "ALU",
+      "PCMUX"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "four_srcb": 0,
+    "srcb": 1,
+    "aluresult_pcmux": 2,
+    "pc_iord": 0,
+    "iord_adr": 1,
+    "mem_ir": 2,
+    "pcwrite_or": 0,
+    "pcen": 1,
+    "pcnext": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -6717,12 +8028,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -6741,16 +8046,22 @@
        50
       ]
      ],
-     "B": [
-      [
-       50,
-       50
-      ]
-     ],
      "PC": [
       [
        0,
        0
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
       ]
      ]
     }
@@ -6760,6 +8071,61 @@
     "B",
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "A,B",
+     "wires": [
+      "ir_a1",
+      "ir_a2",
+      "ir_ctrl",
+      "rd1_a",
+      "rd2_b"
+     ],
+     "comps": [
+      "IR",
+      "RF",
+      "CTRL",
+      "A",
+      "B"
+     ]
+    },
+    {
+     "target": "ALUOut",
+     "wires": [
+      "ir_imm",
+      "pc_srca",
+      "signimm_sl2",
+      "srca",
+      "sl2_srcb",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "IR",
+      "SIGNEXT",
+      "PC",
+      "SRCAMUX",
+      "SL2",
+      "ALU",
+      "SRCBMUX",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_sl2": 1,
+    "sl2_srcb": 2,
+    "srcb": 3,
+    "aluresult_aluout": 4,
+    "ir_a1": 0,
+    "ir_a2": 0,
+    "ir_ctrl": 0,
+    "rd1_a": 1,
+    "rd2_b": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -6933,12 +8299,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -6962,12 +8322,48 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "ALUOut",
+     "wires": [
+      "a_srca",
+      "ir_imm",
+      "signimm_srcb",
+      "srca",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "A",
+      "SRCAMUX",
+      "IR",
+      "SIGNEXT",
+      "SRCBMUX",
+      "ALU",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "a_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_srcb": 1,
+    "srcb": 2,
+    "aluresult_aluout": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -7127,12 +8523,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -7150,12 +8540,42 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "RF"
    ],
+   "jobs": [
+    {
+     "target": "RF",
+     "wires": [
+      "aluout_res",
+      "ir_rt_wr",
+      "result_wd3",
+      "writereg"
+     ],
+     "comps": [
+      "ALUOUT",
+      "RESMUX",
+      "IR",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "aluout_res": 0,
+    "ir_rt_wr": 0,
+    "result_wd3": 1,
+    "writereg": 1
+   },
    "changes": {
     "regs": {
      "$t5": 14
@@ -7364,12 +8784,6 @@
        100
       ]
      ],
-     "IR": [
-      [
-       200,
-       200
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -7385,13 +8799,70 @@
        100,
        100
       ]
+     ],
+     "IR": [
+      [
+       200,
+       200
+      ]
      ]
     }
    },
    "intended": [
-    "PC",
-    "IR"
+    "IR",
+    "PC"
    ],
+   "jobs": [
+    {
+     "target": "IR",
+     "wires": [
+      "pc_iord",
+      "iord_adr",
+      "mem_ir"
+     ],
+     "comps": [
+      "PC",
+      "IORDMUX",
+      "MEM",
+      "IR"
+     ]
+    },
+    {
+     "target": "PC",
+     "wires": [
+      "four_srcb",
+      "pc_srca",
+      "pcwrite_or",
+      "pcen",
+      "srca",
+      "srcb",
+      "aluresult_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "SRCBMUX",
+      "PC",
+      "SRCAMUX",
+      "CTRL",
+      "OR",
+      "ALU",
+      "PCMUX"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "four_srcb": 0,
+    "srcb": 1,
+    "aluresult_pcmux": 2,
+    "pc_iord": 0,
+    "iord_adr": 1,
+    "mem_ir": 2,
+    "pcwrite_or": 0,
+    "pcen": 1,
+    "pcnext": 3
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -7599,12 +9070,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -7623,16 +9088,22 @@
        50
       ]
      ],
-     "B": [
-      [
-       50,
-       50
-      ]
-     ],
      "PC": [
       [
        0,
        0
+      ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
+     ],
+     "B": [
+      [
+       50,
+       50
       ]
      ]
     }
@@ -7642,6 +9113,61 @@
     "B",
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "A,B",
+     "wires": [
+      "ir_a1",
+      "ir_a2",
+      "ir_ctrl",
+      "rd1_a",
+      "rd2_b"
+     ],
+     "comps": [
+      "IR",
+      "RF",
+      "CTRL",
+      "A",
+      "B"
+     ]
+    },
+    {
+     "target": "ALUOut",
+     "wires": [
+      "ir_imm",
+      "pc_srca",
+      "signimm_sl2",
+      "srca",
+      "sl2_srcb",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "IR",
+      "SIGNEXT",
+      "PC",
+      "SRCAMUX",
+      "SL2",
+      "ALU",
+      "SRCBMUX",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_srca": 0,
+    "srca": 1,
+    "ir_imm": 0,
+    "signimm_sl2": 1,
+    "sl2_srcb": 2,
+    "srcb": 3,
+    "aluresult_aluout": 4,
+    "ir_a1": 0,
+    "ir_a2": 0,
+    "ir_ctrl": 0,
+    "rd1_a": 1,
+    "rd2_b": 1
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -7825,13 +9351,13 @@
        0
       ]
      ],
-     "B": [
+     "PC": [
       [
        0,
        0
       ]
      ],
-     "PC": [
+     "B": [
       [
        0,
        0
@@ -7842,6 +9368,33 @@
    "intended": [
     "ALUOut"
    ],
+   "jobs": [
+    {
+     "target": "ALUOut",
+     "wires": [
+      "a_srca",
+      "b_srcb",
+      "srca",
+      "srcb",
+      "aluresult_aluout"
+     ],
+     "comps": [
+      "A",
+      "SRCAMUX",
+      "B",
+      "SRCBMUX",
+      "ALU",
+      "ALUOUT"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "a_srca": 0,
+    "srca": 1,
+    "b_srcb": 0,
+    "srcb": 1,
+    "aluresult_aluout": 2
+   },
    "changes": {
     "regs": {},
     "mem": {},
@@ -8001,12 +9554,6 @@
        50
       ]
      ],
-     "IR": [
-      [
-       0,
-       0
-      ]
-     ],
      "CTRL": [
       [
        0,
@@ -8024,12 +9571,42 @@
        0,
        0
       ]
+     ],
+     "IR": [
+      [
+       0,
+       0
+      ]
      ]
     }
    },
    "intended": [
     "RF"
    ],
+   "jobs": [
+    {
+     "target": "RF",
+     "wires": [
+      "aluout_res",
+      "ir_rd_wr",
+      "result_wd3",
+      "writereg"
+     ],
+     "comps": [
+      "ALUOUT",
+      "RESMUX",
+      "IR",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "aluout_res": 0,
+    "ir_rd_wr": 0,
+    "result_wd3": 1,
+    "writereg": 1
+   },
    "changes": {
     "regs": {
      "$t6": 7

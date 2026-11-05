@@ -17,18 +17,15 @@ import os
 import sys
 from pathlib import Path
 
-import numpy as np
-
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 
 from manim import (BOLD, DOWN, LEFT, RIGHT, UP, WHITE, Create, DashedLine, FadeIn, FadeOut,  # noqa: E402
-                   Group, Line, Rectangle, RoundedRectangle, ValueTracker, VGroup, linear)
+                   GrowFromEdge, Group, LaggedStart, Line, Rectangle, RoundedRectangle, VGroup, linear)
 
 from common.style import (ASSUME, BLUE, FAINT, GREY, INK, MONO, ORANGE, RED, YEL,  # noqa: E402
                           YEL_STRONG, Cell, StyleScene, term, txt)
 from inorder.shared.datapath import Datapath  # noqa: E402
-from inorder.shared.isa import reg_name  # noqa: E402
 
 TRACE = ROOT / "inorder/multi_cycle/out/trace.json"
 SC_TRACE = ROOT / "inorder/single_cycle/out/trace.json"
@@ -54,6 +51,9 @@ TL_X0, TL_X1 = -5.25, 2.95
 TL_Y0, TL_DY = -1.70, 0.17
 LBL_X = -6.15
 SEC_PER_PS = 0.017            # same pace as the single-cycle video
+SEC_PER_PS_UNIT = 0.012       # how long a timed unit (memory / ALU / register file) is shown working
+DELAY_PARTS = {"MEM", "ALU", "RF", "RF_W"}
+PART_OF = {"PC": "PC", "IR": "IR", "A": "A", "B": "B", "ALUOut": "ALUOUT", "Data": "DATA"}
 
 
 def hx(v, w=2):
@@ -78,6 +78,8 @@ class MultiCycle(StyleScene):
     def construct(self):
         self.T = json.loads(TRACE.read_text())
         self.period = self.T["config"]["period_ps"]
+        self.wsrc = {w: v[0] for w, v in self.T["config"]["wire_ends"].items()}
+        self.wdst = {w: v[1] for w, v in self.T["config"]["wire_ends"].items()}
         n_env = os.environ.get("MC_STEPS")
         steps = self.T["steps"][: int(n_env)] if n_env else self.T["steps"]
         self.B = Board()
@@ -213,6 +215,11 @@ class MultiCycle(StyleScene):
                   f"{ASSUME}: 슬라이드에 클록 값이 없어, 가장 긴 단계(메모리 {d['mem']}ps)로 클록 {self.period}ps를 잡았다."],
                  wait=3.5)
         self.cum_cycles, self.cum_used, self.done = 0, 0, 0
+        self.cstyle = {n: "idle" for n in self.dp.comps}
+        self.wstyle = {n: "idle" for n in self.dp.wires}
+        self.shown_slots, self.job_ovs = set(), []
+        for t in self.dp.tags.values():
+            t._shown = None
         self.bars, self.slot_mobs, self.blue_cells = VGroup(), [], []
         self.cur_instr = None
 
@@ -229,23 +236,24 @@ class MultiCycle(StyleScene):
     # ------------------------------------------------------------- cycle ---
     def cycle(self, st):
         c, ins, s = st["cycle"], st["instr"], st["state"]
-        comps, wires = st["active"]["components"], st["active"]["wires"]
+        comps, wires = set(st["active"]["components"]), set(st["active"]["wires"])
         for cell in self.blue_cells:
             cell.recolor(INK)
         self.blue_cells = []
-        clear = [FadeOut(m) for m in self.bars]
-        self.dp.reset()
-        for k, t in self.dp.tags.items():
-            t.become(txt(k, 9, ORANGE).move_to(t))
+
+        # (C) header + only the parts whose look changes; no reset flash
         hdr = txt(f"사이클 {c} / {len(self.T['steps'])}   ·   {s} {st['state_name']}", 15).move_to([5.2, 3.62, 0])
-        anims = clear + [FadeOut(self.hdr), FadeIn(hdr)]
+        anims = [FadeOut(m) for m in self.bars] + [FadeOut(self.hdr), FadeIn(hdr)]
+        if self.B.phase_hl is not None:
+            anims.append(FadeOut(self.B.phase_hl))
+            self.B.phase_hl = None
         new_instr = ins["n"] != self.cur_instr
         if new_instr:
             self.cur_instr = ins["n"]
             new_ins = txt(f"I{ins['index']}  {ins['text']}", 15, font=MONO).move_to([5.2, 3.27, 0])
             seq = next(i["states"] for i in self.T["instr_states"] if i["n"] == ins["n"])
             chips = VGroup()
-            for k_, name in enumerate(seq):
+            for name in seq:
                 box = RoundedRectangle(corner_radius=0.05, width=0.5, height=0.24, stroke_color=INK,
                                        stroke_width=1).set_fill(WHITE, 1)
                 chips.add(VGroup(box, txt(name, 11, font=MONO).move_to(box)))
@@ -255,20 +263,15 @@ class MultiCycle(StyleScene):
             if c == 1:
                 anims += [FadeIn(self.ins_box), FadeIn(new_ins), FadeIn(chips), FadeIn(arrows)]
             else:
-                anims += [FadeOut(self.ins), FadeIn(new_ins), FadeOut(self.chips), FadeIn(chips),
-                          FadeIn(arrows)]
-            self.ins, self.chips, self.chip_arrows_new = new_ins, VGroup(chips, arrows), chips
+                anims += [FadeOut(self.ins), FadeIn(new_ins), FadeOut(self.chips), FadeIn(chips), FadeIn(arrows)]
+            self.ins, self.chips = new_ins, VGroup(chips, arrows)
         self.play(*anims, run_time=self.rt(0.5))
         self.hdr = hdr
-        self.bars, self.slot_mobs = VGroup(), []
-        # current state chip
+        self.bars = VGroup()
         seq_chips = self.chips[0]
         k_now = [i for i, ch in enumerate(seq_chips) if ch[1].text == s][0]
         for i, ch in enumerate(seq_chips):
             ch[0].set_fill(YEL_STRONG if i == k_now else (GREY if i < k_now else WHITE), 0.8 if i == k_now else 1)
-        if self.B.phase_hl is not None:
-            self.play(FadeOut(self.B.phase_hl), run_time=self.rt(0.15))
-            self.B.phase_hl = None
 
         if new_instr:
             seq = [ch[1].text for ch in seq_chips]
@@ -279,61 +282,158 @@ class MultiCycle(StyleScene):
 
         self.predict(c, hint=f"상태 {s} {st['state_name']}: 어떤 부품을 쓰고, 어느 레지스터에 무엇이 저장될까?")
 
-        # control signals
-        ctl = dict(st["control"])
+        # (C) restyle only what changes: used parts neutral, unused grey
         an = []
-        for sname in SIG_L + SIG_R:
-            val = str(ctl[sname]) + (f" {st['alu_op']}" if sname == "ALUControl" and st["alu_op"] else "")
-            if self.ctl[sname].s != val:
-                an.append(self.ctl[sname].change(val, BLUE))
-                self.blue_cells.append(self.ctl[sname])
-            if sname in self.dp.tags:
-                tag = self.dp.tags[sname]
-                an.append(tag.animate.become(txt(f"{sname}={ctl[sname]}", 9, ORANGE, weight=BOLD).move_to(tag)))
         for n, comp in self.dp.comps.items():
-            if n not in comps:
-                an.append(comp.animate.style("off"))
+            want = "idle" if n in comps else "off"
+            if self.cstyle.get(n) != want:
+                an.append(comp.animate.style(want))
+                self.cstyle[n] = want
         for n, w in self.dp.wires.items():
-            if n not in wires:
-                an.append(w.animate.style("off"))
-        self.play(*an, run_time=self.rt(0.8))
+            want = "idle" if n in wires else "off"
+            if self.wstyle.get(n) != want:
+                an.append(w.animate.style(want))
+                self.wstyle[n] = want
+        if an:
+            self.play(*an, run_time=self.rt(0.6))
+
+        # (C) control: only the signals that changed, one after another; X faint
+        bubble = {k for k in self.T["config"]["fsm"][s] if k != "name"}
+        changed = []
+        for sname in SIG_L + SIG_R:
+            v = st["control"][sname]
+            val = str(v) + (f" {st['alu_op']}" if sname == "ALUControl" and st["alu_op"] else "")
+            if self.ctl[sname].s != val:
+                changed.append(self.ctl[sname].change(val, FAINT if v == "X" else BLUE))
+                if v != "X":
+                    self.blue_cells.append(self.ctl[sname])
+        tags = []
+        for sname, tag in self.dp.tags.items():
+            v = st["control"].get(sname)
+            new_t = f"{sname}={v}" if (sname in bubble or (sname == "ALUControl" and st["alu_op"])) else sname
+            if getattr(tag, "_shown", sname) != new_t:
+                emph = new_t != sname
+                tags.append(tag.animate.become(txt(new_t, 9, ORANGE if emph else FAINT,
+                                                   weight=BOLD if emph else "NORMAL").move_to(tag)))
+                tag._shown = new_t
+        if changed or tags:
+            self.play(LaggedStart(*changed, lag_ratio=0.35), *tags,
+                      run_time=self.rt(max(0.6, 0.3 * len(changed))))
+        listed = ", ".join(f"{k}={st['control'][k]}" for k in SIG_L + SIG_R if k in bubble)
+        self.say([f"{s}의 FSM 출력(그림 동그라미): {listed}",
+                  "나머지 쓰기 신호는 0, mux 선택은 X(옅은 회색) — 이 사이클에 쓰지 않는다."], wait=2.0)
         if c == 1:
             self.say([f"{ASSUME}: ALUControl 3비트 값과 ALU 디코더(ALUOp 00=add, 01=sub, 10=funct)는 H&H 7장 표."],
                      wait=2.2)
 
-        self.propagate(st)
+        self.run_jobs(st)
+        self.cycle_summary(st)
         self.clock_edge(st)
         self.check_board(st)
 
     # ------------------------------------------------------------ text ---
-    def state_text(self, st):
+    def job_text(self, st, job, k, n):
         s, v, b = st["state"], st["values"], st["regs_before"]
         d = {e["comp"]: e["end"] - e["start"] for e in st["timing"]["events"]}
-        tag = f"{s} {st['state_name']}"
-        if s == "S0":
-            return [f"{tag}: 메모리 주소 PC={hx(b['PC'])}에서 명령어를 읽어 IR에 넣는다 (메모리 {d['MEM']}ps).",
-                    f"같은 사이클에 ALU가 PC+4 = {hx(v['ALUResult'])} 계산 → PCWrite=1로 PC 갱신 (ALU {d['ALU']}ps)."]
-        if s == "S1":
-            return [f"{tag}: IR의 rs·rt로 레지스터 읽기 → A={v['RD1']}, B={v['RD2']} (레지스터 파일 {d['RF']}ps).",
-                    f"ALU는 미리 분기 목표 PC + imm×4 = {hx(v['SrcA'])} + {v['SrcB']} = {hx(v['ALUResult'])} → ALUOut ({d['ALU']}ps)."]
+        pre = "①②③"[k] + " " if n > 1 else ""
+        t = job["target"]
+        if s == "S0" and t == "IR":
+            return [pre + f"명령어 읽기: PC={hx(b['PC'])}를 주소로 메모리에서 명령어를 읽어 IR로 (메모리 {d['MEM']}ps)."]
+        if s == "S0" and t == "PC":
+            return [pre + f"PC+4: ALU가 PC({hx(v['SrcA'])}) + 4 = {hx(v['ALUResult'])} 계산 → PCSrc=0, PCWrite=1 → PC로 (ALU {d['ALU']}ps).",
+                    "※ ①과 ②는 실제로는 같은 사이클에 동시에 진행된다 — 화면에서만 하나씩 보여준다."]
+        if s == "S1" and t == "A,B":
+            return [pre + f"레지스터 읽기: IR의 rs·rt → A={v['RD1']}, B={v['RD2']} (레지스터 파일 {d['RF']}ps).",
+                    "제어 유닛은 IR의 opcode를 보고 다음 상태를 정한다."]
+        if s == "S1" and t == "ALUOut":
+            return [pre + f"분기 목표를 미리 계산: PC({hx(v['SrcA'])}) + imm×4({v['SrcB']}) = {hx(v['ALUResult'])} → ALUOut (ALU {d['ALU']}ps).",
+                    "beq가 아니면 이 값은 쓰이지 않는다. ※ ①과 동시에 진행된다."]
         if s in ("S2", "S9"):
-            what = "주소" if s == "S2" else "덧셈 결과"
-            return [f"{tag}: ALU가 {what} 계산: A({v['SrcA']}) + SignImm({v['SrcB']}) = {v['ALUResult']} → ALUOut (ALU {d['ALU']}ps)."]
+            what = "주소" if s == "S2" else "덧셈"
+            return [f"{what} 계산: ALU가 A({v['SrcA']}) + SignImm({v['SrcB']}) = {v['ALUResult']} → ALUOut (ALU {d['ALU']}ps)."]
         if s == "S3":
-            return [f"{tag}: IorD=1 → ALUOut의 주소 {v['Adr']}({hx(v['Adr'])})에서 값 {v['ReadData']}을 읽어 Data에 넣는다 (메모리 {d['MEM']}ps)."]
+            return [f"메모리 읽기: IorD=1 → ALUOut의 주소 {v['Adr']}({hx(v['Adr'])})에서 값 {v['ReadData']}을 읽어 Data로 (메모리 {d['MEM']}ps)."]
         if s == "S5":
-            return [f"{tag}: IorD=1 → 주소 {v['Adr']}({hx(v['Adr'])})에 B={b['B']} 쓰기 (메모리 {d['MEM']}ps).",
+            return [f"메모리 쓰기: IorD=1 → 주소 {v['Adr']}({hx(v['Adr'])})에 B={b['B']} (메모리 {d['MEM']}ps).",
                     "실제 저장은 클록 에지(clock edge)에서 일어난다."]
         if s == "S6":
             op = st["alu_op"]
-            return [f"{tag}: ALU가 {op} 연산: A({v['SrcA']}) {OPSYM[op]} B({v['SrcB']}) = {v['ALUResult']} → ALUOut (ALU {d['ALU']}ps)."]
+            return [f"연산: ALU가 {op} — A({v['SrcA']}) {OPSYM[op]} B({v['SrcB']}) = {v['ALUResult']} → ALUOut (ALU {d['ALU']}ps)."]
         if s == "S8":
-            return [f"{tag}: ALU가 비교: A({v['SrcA']}) - B({v['SrcB']}) = {v['ALUResult']} → Zero={st['Zero']} (ALU {d['ALU']}ps).",
+            return [f"비교: ALU가 A({v['SrcA']}) - B({v['SrcB']}) = {v['ALUResult']} → Zero={st['Zero']} (ALU {d['ALU']}ps).",
                     f"Branch & Zero = {st['PCEn']} → PCEn: PC ← ALUOut({hx(b['ALUOut'])}, S1에서 미리 계산한 분기 목표)."]
         src = "Data" if st["control"]["MemtoReg"] == 1 else "ALUOut"
-        return [f"{tag}: {src}의 값 {v['WD3']} → 레지스터 {v['WriteReg']} (RegDst={st['control']['RegDst']}, "
+        return [f"레지스터 쓰기: {src}의 값 {v['WD3']} → {v['WriteReg']} (RegDst={st['control']['RegDst']}, "
                 f"MemtoReg={st['control']['MemtoReg']}, 레지스터 파일 {d['RF_W']}ps).",
                 "실제 저장은 클록 에지(clock edge)에서 일어난다."]
+
+    # ---------------------------------------------------- jobs (A + B) ---
+    def run_jobs(self, st):
+        tm = st["timing"]
+        hop = st["wire_hop"]
+        ev = {e["comp"]: e for e in tm["events"]}
+        done_bar = set()
+        stage = tm["events"][0]["stage"]
+        self.set_phase(STAGES.index(stage))
+        self.job_ovs = []
+        lit = set()
+        jobs = st["jobs"]
+        for k, job in enumerate(jobs):
+            self.say(self.job_text(st, job, k, len(jobs)), wait=2.0)
+            jw = job["wires"]
+            # sources of hop-0 wires light first
+            first = [self.dp.comps[self.wsrc[w]] for w in jw if hop[w] == 0 and self.wsrc[w] in self.dp.comps
+                     and self.wsrc[w] not in lit]
+            for w in jw:
+                if hop[w] == 0 and self.wsrc[w] in self.dp.comps:
+                    lit.add(self.wsrc[w])
+            if first:
+                self.play(*[m.animate.style("on") for m in first], run_time=self.rt(0.3))
+            ovs = []
+            for h in sorted({hop[w] for w in jw}):
+                ws = [w for w in jw if hop[w] == h]
+                an = []
+                for w in ws:
+                    ov = self.dp.wires[w].copy().style("on").set_z_index(4)
+                    ovs.append(ov)
+                    an.append(Create(ov))
+                dests = []
+                for w in ws:
+                    dname = self.wdst[w]
+                    part = "RF" if dname == "RF_W" else dname
+                    if part in self.dp.comps and part not in lit and part not in DELAY_PARTS:
+                        dests.append(self.dp.comps[part])
+                        lit.add(part)
+                an += [m.animate.style("on") for m in dests]
+                an += [FadeIn(g) for g in self.slots_for(st, ws)]
+                self.play(*an, run_time=self.rt(0.5))
+                # a timed unit starts once its last input has arrived in this job
+                for w in ws:
+                    dname = self.wdst[w]
+                    if dname in ev and dname not in done_bar and \
+                            h == max(hop[x] for x in jw if self.wdst[x] == dname):
+                        done_bar.add(dname)
+                        self.timed_unit(st, ev[dname])
+                        lit.add("RF" if dname == "RF_W" else dname)
+            for ov in ovs:
+                ov.style("done")
+            self.job_ovs += ovs
+            if k < len(jobs) - 1:
+                self.pause(0.4)
+
+    def timed_unit(self, st, e):
+        part = self.dp.comps["RF" if e["comp"] == "RF_W" else e["comp"]]
+        row = next(i for i, (cn, _) in enumerate(ROWS) if cn == e["comp"])
+        y = TL_Y0 - TL_DY * row
+        bar = Rectangle(width=self.px(e["end"]) - self.px(e["start"]), height=TL_DY * 0.72,
+                        stroke_width=0).set_fill(ORANGE, 0.9)
+        bar.move_to([self.px(e["start"]), y, 0], aligned_edge=LEFT)
+        lab = txt(f"{e['end'] - e['start']}ps", 9, INK, font=MONO).next_to(bar, RIGHT, buff=0.06)
+        self.bars.add(bar, lab)
+        self.play(part.animate.style("hot"), run_time=self.rt(0.2))
+        self.play(GrowFromEdge(bar, LEFT), FadeIn(lab),
+                  run_time=self.rt((e["end"] - e["start"]) * SEC_PER_PS_UNIT), rate_func=linear)
+        self.play(part.animate.style("on"), run_time=self.rt(0.2))
 
     def slot_value(self, st, slot):
         v, b = st["values"], st["regs_before"]
@@ -348,181 +448,103 @@ class MultiCycle(StyleScene):
                 "WD3": lambda: str(v["WD3"]), "WriteData": lambda: str(b["B"]),
                 "PCNext": lambda: hx(v["PCNext"])}[slot]()
 
-    # -------------------------------------------------------- propagate ---
-    def propagate(self, st):
-        tm = st["timing"]
-        used, period = tm["used"], tm["period"]
-        wps, cps = tm["wire_ps"], tm["comp_ps"]
-        T = ValueTracker(0)
-        WIN = 8
-
-        ovs = []
-        for n, t0 in wps.items():
-            base = self.dp.wires[n].style("idle")
-            ov = base.copy().style("on")
-            full = ov.line.copy()
-            ov.line.pointwise_become_partial(full, 0, 0)
-            ov.tip.set_opacity(0)
-            ov.set_z_index(4)
-
-            def upd(m, full=full, t0=t0):
-                a = float(np.clip((T.get_value() - t0) / WIN, 0, 1))
-                m.line.pointwise_become_partial(full, 0, max(a, 1e-4))
-                m.line.set_stroke(opacity=1 if a > 0 else 0)
-                m.tip.set_opacity(1 if a >= 1 else 0)
-            ov.add_updater(upd)
-            ovs.append(ov)
-
-        part_iv = {}
-        for n, iv in cps.items():
-            part_iv.setdefault("RF" if n == "RF_W" else n, []).extend(iv)
-
-        def comp_upd(m, iv):
-            t = T.get_value()
-            if t < min(s for s, _ in iv):
-                m.style("idle")
-            elif any(s <= t <= max(e, s + WIN) for s, e in iv):
-                m.style("hot")
-            else:
-                m.style("on")
-        for n, iv in part_iv.items():
-            if n in self.dp.comps:
-                self.dp.comps[n].add_updater(lambda m, iv=iv: comp_upd(m, iv))
-
+    def slots_for(self, st, ws):
+        out = []
         for slot, wl in SLOT_WIRES.items():
-            ws = [w for w in wl if w in wps]
-            if not ws:
+            if slot in self.shown_slots or not any(w in ws for w in wl):
                 continue
             val = self.slot_value(st, slot)
             if val is None:
                 continue
+            self.shown_slots.add(slot)
             pos, _ = self.dp.slot(slot)
             lab = txt(val, 10, BLUE, font=MONO)
             bg = Rectangle(width=lab.width + 0.08, height=lab.height + 0.06, stroke_width=0).set_fill(WHITE, 0.85)
-            g = VGroup(bg, lab).move_to([pos[0], pos[1], 0]).set_z_index(6).set_opacity(0)
-            t0 = min(wps[w] for w in ws)
-            g.add_updater(lambda m, t0=t0: m.set_opacity(1 if T.get_value() >= t0 + WIN else 0))
-            self.slot_mobs.append(g)
+            g = VGroup(bg, lab).move_to([pos[0], pos[1], 0]).set_z_index(6)
+            self.bars.add(g)
+            out.append(g)
+        return out
 
-        bars = VGroup()
-        for e in tm["events"]:
-            row = next(i for i, (cn, _) in enumerate(ROWS) if cn == e["comp"])
-            y = TL_Y0 - TL_DY * row
-            bar = Rectangle(width=0.01, height=TL_DY * 0.72, stroke_width=0).set_fill(ORANGE, 0.9)
-
-            def bupd(m, e=e, y=y):
-                t = min(T.get_value(), e["end"])
-                w = max(self.px(t) - self.px(e["start"]), 0.001)
-                m.stretch_to_fit_width(w).move_to([self.px(e["start"]) + w / 2, y, 0])
-                m.set_opacity(0.9 if T.get_value() > e["start"] else 0)
-            bar.add_updater(bupd)
-            bars.add(bar)
-        ub = Rectangle(width=0.01, height=0.15, stroke_width=0).set_fill(YEL_STRONG, 1)
-        ub.add_updater(lambda m: m.stretch_to_fit_width(max(self.px(min(T.get_value(), used)) - TL_X0, 0.001))
-                       .move_to([TL_X0, self.sum_y, 0], aligned_edge=LEFT))
-        wb = Rectangle(width=0.01, height=0.15, stroke_width=0).set_fill(RED, 0.35)
-
-        def wupd(m):
-            t = T.get_value()
-            w = max(self.px(min(t, period)) - self.px(used), 0.001)
-            m.stretch_to_fit_width(w).move_to([self.px(used), self.sum_y, 0], aligned_edge=LEFT)
-            m.set_opacity(0.35 if t > used else 0)
-        wb.add_updater(wupd)
-        cursor = Line([0, TL_Y0 + 0.1, 0], [0, self.sum_y - 0.1, 0], stroke_width=2, color=INK)
-        cursor.add_updater(lambda m: m.move_to([self.px(T.get_value()), m.get_y(), 0]))
-        clk = txt("", 10, INK, font=MONO)
-        clk.add_updater(lambda m: m.become(txt(f"t={int(T.get_value())}ps", 10, INK, font=MONO))
-                        .move_to([self.px(T.get_value()), TL_Y0 + 0.36, 0]))
-        bars.add(ub, wb, cursor, clk)
-        self.add(*ovs, *self.slot_mobs, bars)
-
-        # announce what this state does (cursor stopped), then mark the stage and sweep
-        self.say(self.state_text(st), wait=2.0)
-        stage = st["timing"]["events"][0]["stage"]
-        self.set_phase(STAGES.index(stage))
-        self.pause(0.3)
-        marks = sorted({0, used, period})
-        for a, b in zip(marks[:-1], marks[1:]):
-            if a == used:
-                self.on_used(st)
-            self.play(T.animate.set_value(b), run_time=self.rt((b - a) * SEC_PER_PS), rate_func=linear)
-        if used == period:
-            self.on_used(st)
-
-        for m in [*ovs, *self.slot_mobs, *bars]:
-            m.clear_updaters()
-        for n in part_iv:
-            if n in self.dp.comps:
-                self.dp.comps[n].clear_updaters()
-                self.dp.comps[n].style("on")
-        for n in wps:
-            self.dp.wires[n].style("on")
-        self.remove(*ovs, bars, *self.slot_mobs)
-        self.bars = VGroup(*bars, *self.slot_mobs)
-        self.add(self.bars)
-        self.slot_mobs = []
-
-    def on_used(self, st):
+    def cycle_summary(self, st):
         tm = st["timing"]
-        l1 = txt(f"필요 {tm['used']}ps", 10, INK, weight=BOLD).move_to([self.px(tm["used"] / 2), self.sum_y, 0])
+        used, period = tm["used"], tm["period"]
+        ub = Rectangle(width=self.px(used) - TL_X0, height=0.15, stroke_width=0).set_fill(YEL_STRONG, 1)
+        ub.move_to([TL_X0, self.sum_y, 0], aligned_edge=LEFT)
+        an = [GrowFromEdge(ub, LEFT)]
+        self.bars.add(ub)
+        l1 = txt(f"필요 {used}ps", 10, INK, weight=BOLD).move_to([self.px(used / 2), self.sum_y, 0]).set_z_index(5)
+        self.play(*an, run_time=self.rt(0.8))
+        self.play(FadeIn(l1), run_time=self.rt(0.2))
+        self.bars.add(l1)
         if tm["waste"] > 0:
+            wb = Rectangle(width=self.px(period) - self.px(used), height=0.15, stroke_width=0).set_fill(RED, 0.35)
+            wb.move_to([self.px(used), self.sum_y, 0], aligned_edge=LEFT)
             l2 = txt(f"남는 {tm['waste']}ps", 10, RED, weight=BOLD).move_to(
-                [self.px((tm["used"] + tm["period"]) / 2), self.sum_y, 0])
-            line = (f"{tm['used']}ps에 이 단계의 일은 끝났지만, 클록은 {tm['period']}ps — "
-                    f"남은 {tm['waste']}ps는 쓰지 않는다.")
+                [self.px((used + period) / 2), self.sum_y, 0]).set_z_index(5)
+            self.play(GrowFromEdge(wb, LEFT), FadeIn(l2), run_time=self.rt(0.6))
+            self.bars.add(wb, l2)
+            line = f"이 사이클의 일은 {used}ps에 끝났지만 클록은 {period}ps — 남은 {tm['waste']}ps는 쓰지 않는다."
         else:
-            l2 = txt("남는 0ps — 메모리 단계", 10, RED).move_to([self.px(tm["period"]) - 1.2, self.sum_y, 0])
-            line = f"메모리 접근은 {tm['period']}ps 클록을 꽉 채운다 (클록 주기를 정한 단계)."
-        l1.set_z_index(5); l2.set_z_index(5)
-        self.play(FadeIn(l1), FadeIn(l2), run_time=self.rt(0.3))
+            line = f"메모리 접근은 {period}ps 클록을 꽉 채운다 (클록 주기를 정한 단계)."
         self.say([line], wait=1.4)
-        self.slot_mobs += [l1, l2]
 
-    # -------------------------------------------------------- clock edge ---
+    # -------------------------------------------------- clock edge (D) ---
     def clock_edge(self, st):
-        p = st["timing"]["period"]
-        self.say([f"{p}ps: 클록 에지(clock edge) — 레지스터들이 새 값을 저장하고 다음 사이클로 넘어간다."], wait=1.4)
-        an, words, side = [], [], []
-        intended = set(st["intended"])
+        P = st["timing"]["period"]
+        intended = st["intended"]
+        moves = []           # (label text, from part, to cell)
         for n, val in st["changes"]["nonarch"].items():
-            txtv = self.na_text(n, val)
-            meaningful = n in intended
-            an.append(self.na[n].change(txtv, BLUE if meaningful else FAINT))
-            if meaningful:
-                self.blue_cells.append(self.na[n])
-                words.append(f"{n} ← {txtv}")
-            else:
-                side.append(n)
+            if n in intended:
+                moves.append((n, self.na_text(n, val), PART_OF[n], self.na[n]))
         for r, val in st["changes"]["regs"].items():
-            if r in self.regs:
-                an.append(self.regs[r].change(str(val), BLUE))
-                self.blue_cells.append(self.regs[r])
-            words.append(f"{r} ← {val}")
+            moves.append((r, str(val), "RF", self.regs.get(r)))
         for a, val in st["changes"]["mem"].items():
-            if a in self.mem:
-                an.append(self.mem[a].change(str(val), BLUE))
-                self.blue_cells.append(self.mem[a])
-            words.append(f"Mem[{a}] ← {val}")
+            moves.append((f"Mem[{a}]", str(val), "MEM", self.mem.get(a)))
+        same = [n for n in intended if n in ("A", "B", "ALUOut", "Data", "PC", "IR")
+                and n not in st["changes"]["nonarch"]]
+        words = [f"{n} ← {v}" for n, v, _, _ in moves] + [f"{n}(값 그대로)" for n in same]
+        self.say([f"{P}ps: 클록 에지(clock edge) — " + (", ".join(words) if words else "저장할 값 없음") + "."],
+                 wait=1.0)
+        for n, v, part, cell in moves:
+            if cell is None:
+                continue
+            fly = txt(v, 13, BLUE, font=MONO, weight=BOLD).move_to(self.dp.comps[part]).set_z_index(8)
+            self.play(FadeIn(fly), self.dp.comps[part].animate.style("hot"), run_time=self.rt(0.25))
+            self.play(fly.animate.move_to(cell.rect), run_time=self.rt(0.6))
+            self.play(cell.change(v, BLUE), FadeOut(fly), self.dp.comps[part].animate.style("on"),
+                      run_time=self.rt(0.3))
+            self.blue_cells.append(cell)
+        side = [(n, val) for n, val in st["changes"]["nonarch"].items() if n not in intended]
+        if side:
+            self.play(*[self.na[n].change(self.na_text(n, val), FAINT) for n, val in side], run_time=self.rt(0.5))
         self.cum_cycles += 1
         self.cum_used += st["timing"]["used"]
         seq = next(i["states"] for i in self.T["instr_states"] if i["n"] == st["instr"]["n"])
-        if st["state"] == seq[-1]:
+        last = st["state"] == seq[-1]
+        if last:
             self.done += 1
-        P = self.period
         n1 = txt(f"{self.cum_cycles} 사이클 × {P}ps = {self.cum_cycles * P}ps", 13, font=MONO).move_to([5.2, -2.2, 0])
         cpi = f", CPI {self.cum_cycles / self.done:.2f}" if self.done else ""
         n2 = txt(f"완료한 명령어 {self.done}개{cpi}", 11, FAINT).move_to([5.2, -2.45, 0])
         n3 = txt(f"사이클 안의 남는 시간 합: {self.cum_cycles * P - self.cum_used}ps", 11, RED).move_to([5.2, -2.68, 0])
-        an += [self.tot1.animate.become(n1), self.tot2.animate.become(n2), self.tot3.animate.become(n3)]
-        self.play(*an, run_time=self.rt(0.7))
-        lines = ["클록 에지: " + (", ".join(words) if words else "아키텍처 상태 변화 없음") + "."]
+        self.play(self.tot1.animate.become(n1), self.tot2.animate.become(n2), self.tot3.animate.become(n3),
+                  run_time=self.rt(0.5))
+        lines = []
         if side:
-            lines.append(f"{', '.join(side)}도 매 사이클 덮어쓰이지만 이 값은 쓰이지 않는다(회색).")
-        elif st["state"] == seq[-1]:
+            lines.append(f"{', '.join(n for n, _ in side)}도 매 사이클 덮어쓰이지만 이 값은 쓰이지 않는다(회색).")
+        if last:
             lines.append(f"I{st['instr']['index']} 끝 — {len(seq)}사이클 × {P}ps = {len(seq) * P}ps.")
-        self.say(lines, wait=2.2)
-        if st["state"] == seq[-1] and side:
-            self.say([f"I{st['instr']['index']} 끝 — {len(seq)}사이클 × {P}ps = {len(seq) * P}ps."], wait=1.2)
+        if lines:
+            self.say(lines, wait=1.8)
+        # keep this cycle's paths visible but quiet until the next cycle restyles
+        for w in st["active"]["wires"]:
+            self.dp.wires[w].style("done")
+            self.wstyle[w] = "done"
+        for c_ in st["active"]["components"]:
+            self.cstyle[c_] = "on"
+        self.remove(*self.job_ovs)
+        self.job_ovs = []
+        self.shown_slots = set()
 
     # ------------------------------------------------------- check board ---
     def check_board(self, st):

@@ -101,7 +101,7 @@ def sel(v):
 # --- what each state uses (for painting) and how long its work takes ---------
 # Which register updates are the purpose of each state (H&H 7.4 text).  A, B,
 # Data and ALUOut also load in every other cycle, but those values are not used.
-INTENDED = {"S0": ["PC", "IR"], "S1": ["A", "B", "ALUOut"], "S2": ["ALUOut"], "S3": ["Data"],
+INTENDED = {"S0": ["IR", "PC"], "S1": ["A", "B", "ALUOut"], "S2": ["ALUOut"], "S3": ["Data"],
             "S4": ["RF"], "S5": ["MEM"], "S6": ["ALUOut"], "S7": ["RF"], "S8": ["PC"],
             "S9": ["ALUOut"], "S10": ["RF"]}
 
@@ -148,6 +148,62 @@ def arrival(wires):
             iv.append([max(ins), max(ins)])
         c_ps[k] = iv
     return w_ps, c_ps
+
+
+TARGET_COMP = {"PC": "PC", "IR": "IR", "A": "A", "B": "B", "ALUOut": "ALUOUT", "Data": "DATA",
+               "RF": "RF_W", "MEM": "MEM"}
+STOP = SOURCES          # back-tracing stops at registers / control / constants
+
+
+def jobs_of(wires, intended):
+    """Split a state's work into one job per intended write: the wires that feed
+    that destination (traced backwards), each with a causal hop number
+    (0 = leaves a register, n = n parts after it).  Wires that feed no intended
+    write (e.g. the opcode going to the control unit) join the first job."""
+    hop = {}
+
+    def h(w):
+        if w not in hop:
+            src = WIRE_ENDS[w][0]
+            ins = [x for x in wires if WIRE_ENDS[x][1] == src] if src not in STOP else []
+            hop[w] = 1 + max((h(x) for x in ins), default=-1)
+        return hop[w]
+    for w in wires:
+        h(w)
+    out, taken = [], set()
+    groups = []                          # A and B are read together (same register-file read)
+    for tgt in intended:
+        if tgt == "B" and ["A"] in groups:
+            groups[groups.index(["A"])] = ["A", "B"]
+        else:
+            groups.append([tgt])
+    for grp in groups:
+        tgt = ",".join(grp)
+        dests = [TARGET_COMP[g] for g in grp]
+        js, todo = set(), [w for w in wires if WIRE_ENDS[w][1] in dests]
+        while todo:
+            w = todo.pop()
+            if w in js:
+                continue
+            js.add(w)
+            src = WIRE_ENDS[w][0]
+            if src not in STOP:
+                todo += [x for x in wires if WIRE_ENDS[x][1] == src]
+        out.append({"target": tgt, "wires": sorted(js, key=lambda w: (hop[w], w))})
+        taken |= js
+    rest = [w for w in wires if w not in taken]
+    if rest:
+        if not out:
+            out.append({"target": None, "wires": []})
+        out[0]["wires"] = sorted(set(out[0]["wires"]) | set(rest), key=lambda w: (hop[w], w))
+    for j in out:
+        comps = []
+        for w in j["wires"]:
+            for c in WIRE_ENDS[w]:
+                if c not in comps and c != "CONST":
+                    comps.append(c)
+        j["comps"] = comps
+    return out, hop
 
 
 def state_work(s, c, op_name):
@@ -251,6 +307,8 @@ def build():
 
         comps, wires, ev, used = state_work(state, c, op)
         w_ps, c_ps = arrival(wires)
+        intended = INTENDED[state] if state != "S8" or pcen else []
+        jobs, hops = jobs_of(wires, intended)
         if max([used] + list(w_ps.values())) != used:
             raise RuntimeError(f"{state}: wire timing exceeds state work")
         changes = {"regs": {}, "mem": {}, "nonarch": {}}
@@ -289,7 +347,7 @@ def build():
             "timing": {"events": ev, "used": used, "period": period, "waste": period - used,
                        "wire_ps": w_ps, "comp_ps": {k: v for k, v in c_ps.items()
                                                     if k in comps or k == "RF_W"}},
-            "intended": INTENDED[state] if state != "S8" or pcen else [],
+            "intended": intended, "jobs": jobs, "wire_hop": hops,
             "changes": changes,
             "regs_after": {reg_name(i): s32(v) for i, v in enumerate(regs)},
             "mem_after": {f"0x{a:02X}": s32(mem.get(a, 0)) for a in sorted(dmem)},
@@ -306,6 +364,7 @@ def build():
         "config": {
             "delays_ps": DELAYS, "delays_source": "L10 slide 90 (single-cycle analysis, last page of deck B)",
             "period_ps": period, "alu_control_encoding": ALUCTL, "fsm": FSM,
+            "wire_ends": {w: list(v) for w, v in WIRE_ENDS.items()},
             "assumptions": ASSUMPTIONS,
             "program": [{"addr": p["addr"], "word": f"{p['word']:08X}", "text": p["text"], "reason": r}
                         for p, r in zip(prog, REASONS)],

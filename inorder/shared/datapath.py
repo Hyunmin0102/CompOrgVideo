@@ -240,6 +240,9 @@ class Wire(VGroup):
         elif mode == "on":
             self.line.set_stroke(ORANGE, 3.2, opacity=1)
             self.tip.set_stroke(width=0).set_fill(ORANGE, 1)
+        elif mode == "done":          # used earlier in this cycle, no longer the focus
+            self.line.set_stroke(ORANGE, 2.2, opacity=0.4)
+            self.tip.set_stroke(width=0).set_fill(ORANGE, 0.4)
         else:
             self.line.set_stroke(INK, 1.4, opacity=1)
             self.tip.set_stroke(width=0).set_fill(INK, 1)
