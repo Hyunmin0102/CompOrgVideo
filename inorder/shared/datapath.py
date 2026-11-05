@@ -169,7 +169,7 @@ def _shape(kind, c, w, h):
 class Part(VGroup):
     """A datapath component: outline + label (+ mux input numbers)."""
 
-    def __init__(self, name, kind, c, w, h, label):
+    def __init__(self, name, kind, c, w, h, label, mux_labels=None):
         super().__init__()
         self.name, self.kind = name, kind
         self.body = _shape(kind, c, w, h)
@@ -187,7 +187,10 @@ class Part(VGroup):
             tri = Triangle().scale(0.06).rotate(np.pi).move_to([c[0], c[1] + h / 2 - 0.05, 0])
             tri.set_stroke(INK, 1)
             self.labels.add(tri)
-        if name in MUX_INPUTS:
+        if mux_labels:
+            for t_, yy in mux_labels:
+                self.labels.add(txt(t_, 7).move_to([c[0], yy, 0]))
+        elif name in MUX_INPUTS:
             top, bot = MUX_INPUTS[name]
             self.labels.add(txt(top, 9).move_to([c[0], c[1] + h / 2 - 0.12, 0]),
                             txt(bot, 9).move_to([c[0], c[1] - h / 2 + 0.12, 0]))
@@ -238,14 +241,26 @@ class Wire(VGroup):
 
 
 class Datapath(VGroup):
-    def __init__(self, parts=None, wires=None):
+    """variant='single' (L11 55) or 'multi' (multi-cycle deck slide 57)."""
+
+    def __init__(self, parts=None, wires=None, variant="single"):
         super().__init__()
-        self.comps = {n: Part(n, *LAYOUT[n]) for n in (parts or LAYOUT)}
-        self.wires = {n: Wire(n, WIRES[n]) for n in (wires or WIRES)}
+        self.variant = variant
+        if variant == "multi":
+            lay, wdef, junc, tags, ports, slots = MC_LAYOUT, MC_WIRES, MC_JUNCTIONS, MC_TAGS, MC_PORTS, MC_SLOTS
+        else:
+            lay, wdef, junc, tags, ports, slots = LAYOUT, WIRES, JUNCTIONS, TAGS, None, SLOTS
+        self.slots = slots
+        self.comps = {n: Part(n, *lay[n][:5], mux_labels=MC_MUX_LABELS.get(n) if variant == "multi" else None)
+                      for n in (parts or lay)}
+        self.wires = {n: Wire(n, wdef[n]) for n in (wires or wdef)}
         self.wire_group = VGroup(*self.wires.values())
         self.comp_group = VGroup(*self.comps.values())
-        self.dots = VGroup(*[Dot([x, y, 0], radius=0.03, color=INK) for x, y in JUNCTIONS])
-        self.four = txt("4", 11).move_to([-5.98, -0.60, 0]).shift(LEFT * 0.04)
+        self.dots = VGroup(*[Dot([x, y, 0], radius=0.03, color=INK) for x, y in junc])
+        if variant == "multi":
+            self.four = txt("4", 9).move_to([-1.96, 0.79, 0])
+        else:
+            self.four = txt("4", 11).move_to([-5.98, -0.60, 0]).shift(LEFT * 0.04)
         self.fields = VGroup(
             txt("25:21", 8).move_to([-4.12, 1.53, 0]),
             txt("20:16", 8).move_to([-4.12, 1.08, 0]),
@@ -254,20 +269,20 @@ class Datapath(VGroup):
             txt("15:0", 8).move_to([-4.12, -0.57, 0]),
             txt("31:26, 5:0", 8).move_to([-4.62, 2.66, 0]),
         )
-        self.ports = VGroup(*[txt(s, 8).move_to([x, y, 0]) for s, x, y in [
+        ports = ports or [
             ("A1", -3.78, 1.45), ("A2", -3.78, 1.00), ("A3", -3.78, 0.55), ("WD3", -3.74, 0.35),
             ("RD1", -2.84, 1.30), ("RD2", -2.84, 0.85), ("A", -5.75, 1.00), ("RD", -4.97, 1.00),
-            ("A", 0.60, 1.25), ("WD", 0.63, 0.40), ("RD", 1.48, 1.25), ("Zero", -0.56, 1.40)]])
+            ("A", 0.60, 1.25), ("WD", 0.63, 0.40), ("RD", 1.48, 1.25), ("Zero", -0.56, 1.40)]
+        self.ports = VGroup(*[txt(s_, 8).move_to([x, y, 0]) for s_, x, y in ports])
         self.tags = {}
-        for k, (pos, name) in TAGS.items():
+        for k, (pos, name) in tags.items():
             self.tags[k] = txt(name, 9, ORANGE).move_to([pos[0], pos[1], 0])
         self.tag_group = VGroup(*self.tags.values())
         self.add(self.wire_group, self.dots, self.comp_group, self.four, self.fields, self.ports,
                  self.tag_group)
 
-    @staticmethod
-    def slot(name):
-        return SLOTS[name]
+    def slot(self, name):
+        return self.slots[name]
 
     def paint(self, comps, wires, unused="off"):
         """Set used parts to 'on' and the rest to `unused`; returns nothing (instant)."""
@@ -287,3 +302,101 @@ class Datapath(VGroup):
             c.style("idle")
         for w in self.wires.values():
             w.style("idle").set_z_index(0)
+
+
+# ====================================================================== multi ===
+# Multi-cycle variant (multi-cycle deck slide 57 = PDF p.29), j path omitted.
+# Common parts keep the single-cycle place.  The unified memory takes the
+# instruction-memory slot; the non-architectural registers sit exactly on the
+# stage boundaries where the pipeline registers will go:
+#   IR @ IF/ID,  A,B @ ID/EX,  ALUOut @ EX/MEM,  Data @ MEM/WB.
+MC_LAYOUT = {
+    "PCMUX":     ("mux",   (-6.72, 1.00), 0.24, 0.62, ""),
+    "PC":        ("reg",   (-6.22, 1.00), 0.38, 0.55, "PC"),
+    "IORDMUX":   ("mux",   (-5.80, 1.00), 0.20, 0.55, ""),
+    "MEM":       ("box",   (-5.18, 1.00), 0.78, 1.30, "Instr/Data\nMemory"),
+    "IR":        ("reg",   (-4.58, 1.00), 0.26, 0.55, "IR"),
+    "CTRL":      ("ctrl",  (-3.30, 2.55), 1.15, 0.72, "Control\nUnit"),
+    "RF":        ("box",   (-3.30, 1.00), 1.25, 1.50, "Register\nFile"),
+    "SIGNEXT":   ("box",   (-3.30, -0.65), 1.05, 0.30, "Sign Extend"),
+    "A":         ("reg",   (STAGE_X["ID/EX"], 1.30), 0.26, 0.36, "A"),
+    "B":         ("reg",   (STAGE_X["ID/EX"], 0.85), 0.26, 0.36, "B"),
+    "SRCAMUX":   ("mux",   (-1.70, 1.30), 0.20, 0.45, ""),
+    "SRCBMUX":   ("mux",   (-1.70, 0.60), 0.20, 0.82, ""),
+    "ALU":       ("alu",   (-1.00, 1.00), 0.55, 1.10, "ALU"),
+    "REGDSTMUX": ("mux",   (-1.00, -0.10), 0.22, 0.55, ""),
+    "SL2":       ("box",   (-1.75, -0.65), 0.42, 0.28, "<<2"),
+    "AND":       ("and",   (0.05, 2.75), 0.36, 0.34, ""),
+    "ALUOUT":    ("reg",   (STAGE_X["EX/MEM"], 1.00), 0.26, 0.55, "ALU\nOut"),
+    "DATA":      ("reg",   (STAGE_X["MEM/WB"], 1.05), 0.26, 0.50, "Data"),
+    "RESMUX":    ("mux",   (2.45, 0.90), 0.22, 0.62, ""),
+}
+MC_MUX_LABELS = {
+    "PCMUX": [("01", 1.17), ("00", 0.83)], "IORDMUX": [("0", 1.15), ("1", 0.85)],
+    "SRCAMUX": [("0", 1.43), ("1", 1.17)],
+    "SRCBMUX": [("00", 0.90), ("01", 0.70), ("10", 0.50), ("11", 0.30)],
+    "REGDSTMUX": [("0", 0.05), ("1", -0.25)], "RESMUX": [("1", 1.08), ("0", 0.72)],
+}
+_SP = SPINE_X
+MC_WIRES = {
+    "pcnext":           [P["pcmux_out"], P["pc_in"]],
+    "pc_iord":          [(-6.03, 1.00), (-5.95, 1.00), (-5.95, 1.12), (-5.90, 1.12)],
+    "iord_adr":         [(-5.70, 1.00), (-5.57, 1.00)],
+    "aluout_iord":      [(0.43, 1.00), (0.55, 1.00), (0.55, -1.31), (-5.84, -1.31), (-5.84, 0.74)],
+    "mem_ir":           [(-4.79, 1.00), (-4.71, 1.00)],
+    "mem_data":         [(-4.79, 1.00), (-4.74, 1.00), (-4.74, 2.08), (1.78, 2.08), (1.78, 1.05),
+                         (1.89, 1.05)],
+    "b_wd":             [(-2.20, 0.85), (-2.10, 0.85), (-2.10, -0.95), (-5.70, -0.95), (-5.70, 0.55),
+                         (-5.57, 0.55)],
+    "ir_ctrl":          [(-4.45, 1.00), (_SP, 1.00), (_SP, 2.55), P["ctrl_in"]],
+    "ir_a1":            [(-4.45, 1.00), (_SP, 1.00), (_SP, 1.45), P["rf_a1"]],
+    "ir_a2":            [(-4.45, 1.00), P["rf_a2"]],
+    "ir_rt_wr":         [(-4.45, 1.00), (_SP, 1.00), (_SP, 0.05), P["rdm_in0"]],
+    "ir_rd_wr":         [(-4.45, 1.00), (_SP, 1.00), (_SP, -0.25), P["rdm_in1"]],
+    "ir_imm":           [(-4.45, 1.00), (_SP, 1.00), (_SP, -0.65), P["se_in"]],
+    "writereg":         WIRES["writereg"],
+    "rd1_a":            [P["rf_rd1"], (-2.46, 1.30)],
+    "rd2_b":            [P["rf_rd2"], (-2.46, 0.85)],
+    "pc_srca":          [(-6.03, 1.00), (-5.99, 1.00), (-5.99, 2.98), (-2.00, 2.98), (-2.00, 1.43),
+                         (-1.80, 1.43)],
+    "a_srca":           [(-2.20, 1.30), (-1.92, 1.30), (-1.92, 1.17), (-1.80, 1.17)],
+    "b_srcb":           [(-2.20, 0.85), (-1.92, 0.85), (-1.92, 0.90), (-1.80, 0.90)],
+    "four_srcb":        [(-2.04, 0.70), (-1.80, 0.70)],
+    "signimm_srcb":     [P["se_out"], (-2.45, -0.65), (-2.45, 0.50), (-1.80, 0.50)],
+    "signimm_sl2":      [P["se_out"], P["sl2_in"]],
+    "sl2_srcb":         [P["sl2_out"], (-1.40, -0.65), (-1.40, 0.16), (-1.96, 0.16), (-1.96, 0.30),
+                         (-1.80, 0.30)],
+    "srca":             [(-1.60, 1.30), P["alu_a"]],
+    "srcb":             [(-1.60, 0.60), (-1.45, 0.60), (-1.45, 0.70), P["alu_b"]],
+    "aluresult_aluout": [P["alu_y"], (0.17, 1.00)],
+    "aluresult_pcmux":  [P["alu_y"], (0.00, 1.00), (0.00, -1.08), (-6.95, -1.08), (-6.95, 0.83),
+                         (-6.84, 0.83)],
+    "aluout_pcmux":     [(0.43, 1.00), (0.55, 1.00), (0.55, -1.20), (-7.03, -1.20), (-7.03, 1.17),
+                         (-6.84, 1.17)],
+    "aluout_res":       [(0.43, 1.00), (0.55, 1.00), (0.55, 0.72), (2.34, 0.72)],
+    "data_res":         [(2.15, 1.05), (2.25, 1.05), (2.25, 1.08), (2.34, 1.08)],
+    "result_wd3":       [P["rsm_out"], (2.75, 0.90), (2.75, -1.42), (X_RES, -1.42), (X_RES, 0.35),
+                         P["rf_wd3"]],
+    "zero_and":         WIRES["zero_and"],
+    "branch_and":       WIRES["branch_and"],
+    "pcen":             [P["and_y"], (0.45, 2.75), (0.45, Y_TOP), (-6.22, Y_TOP), (-6.22, 1.30)],
+}
+MC_JUNCTIONS = [(-5.99, 1.00), (-4.74, 1.00), (_SP, 1.00), (_SP, 0.05), (_SP, -0.25), (_SP, 1.45),
+                (-2.10, 0.85), (-2.45, -0.65), (0.00, 1.00), (0.55, 1.00), (0.55, 0.72), (0.55, -1.20)]
+MC_TAGS = {"PCWrite": ((0.05, 3.25), "PCWrite"), "Branch": ((-1.30, 2.94), "Branch"),
+           "PCSrc": ((-6.72, 1.48), "PCSrc"), "IorD": ((-5.80, 1.42), "IorD"),
+           "MemWrite": ((-5.18, 1.82), "MemWrite"), "IRWrite": ((-4.58, 1.42), "IRWrite"),
+           "RegWrite": ((-3.30, 1.90), "RegWrite"), "RegDst": ((-1.00, -0.50), "RegDst"),
+           "ALUSrcA": ((-1.70, 1.66), "ALUSrcA"), "ALUSrcB": ((-1.20, 0.30), "ALUSrcB"),
+           "ALUControl": ((-0.90, 1.72), "ALUControl"), "MemtoReg": ((2.45, 1.36), "MemtoReg")}
+MC_PORTS = [("A1", -3.78, 1.45), ("A2", -3.78, 1.00), ("A3", -3.78, 0.55), ("WD3", -3.74, 0.35),
+            ("RD1", -2.84, 1.30), ("RD2", -2.84, 0.85), ("A", -5.50, 1.00), ("RD", -4.90, 1.00),
+            ("WD", -5.47, 0.55), ("Zero", -0.56, 1.40), ("EN", -6.22, 0.82), ("EN", -4.58, 0.82)]
+MC_SLOTS = {
+    "PC": ((-6.22, 0.55), DOWN), "Adr": ((-5.55, 1.75), UP), "ReadData": ((-4.10, 2.20), UP),
+    "IR": ((-4.58, 0.55), DOWN), "RD1": ((-2.50, 1.60), UP), "RD2": ((-2.50, 0.55), DOWN),
+    "SignImm": ((-2.62, -0.80), DOWN), "SrcA": ((-1.45, 1.45), UP), "SrcB": ((-1.30, 0.55), DOWN),
+    "ALUResult": ((-0.33, 0.86), DOWN), "Zero": ((-0.40, 2.05), RIGHT), "ALUOut": ((0.30, 0.55), DOWN),
+    "Data": ((2.02, 1.50), UP), "WriteReg": ((-0.42, -0.24), RIGHT), "WD3": ((2.98, 0.35), RIGHT),
+    "WriteData": ((-4.0, -0.82), UP), "PCNext": ((-6.50, -1.55), DOWN),
+}
