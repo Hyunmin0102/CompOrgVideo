@@ -16,8 +16,9 @@ python3 inorder/multi_cycle/verify/verify_multi.py  # -> out/verify_report.md (�
 - `verify/reference_slides.py` — 슬라이드 58(PDF 30쪽) 동그라미 글자·화살표, 슬라이드 57 mux 입력 순서
 - `verify/verify_multi.py` — 인터프리터·슬라이드 대조, X 선택을 0/1 두 가지로 돌려 결과가 같은지 확인
 - 데이터패스 그림: `inorder/shared/datapath.py`의 `Datapath(variant="multi")`.
-  공통 부품은 1편과 같은 자리, 통합 메모리는 명령어 메모리 자리, IR·A/B·ALUOut·Data는
-  pipeline 레지스터가 들어갈 단계 경계(IF/ID, ID/EX, EX/MEM, MEM/WB)에 둔다.
+  사용자가 준 H&H multi-cycle 프로세서 그림(`inorder/slides/B_multi_cycle_datapath_ref.png`,
+  슬라이드 57과 같은 구성, j 없음)의 픽셀 좌표를 그대로 옮겨 부품·배선 위치를 정했다.
+  그래서 1편과 부품 위치가 다르다(RegDst·MemtoReg mux는 레지스터 파일 왼쪽, PCSrc mux는 오른쪽 끝).
 
 ## 가정 (`config.assumptions`)
 1. 클록 주기 200ps — 슬라이드에 multi-cycle 클록 값이 없어, L10 90 지연(레지스터 오버헤드 0)으로

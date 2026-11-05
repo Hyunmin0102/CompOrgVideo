@@ -9,7 +9,7 @@ ETH DDCA(Onur Mutlu) L10–L11의 세 가지 마이크로아키텍처가 **같�
 | `isa.py` | 슬라이드의 MIPS 부분집합(add, sub, and, or, slt, addi, lw, sw, beq) 어셈블러/디코더. 실제 32비트 기계어를 만든다 |
 | `program.py` | 3편 공통 프로그램, 초기 레지스터·메모리, 명령어별 설계 이유 |
 | `interpreter.py` | ISA 수준 인터프리터 — 최종 상태가 3편 모든 검증의 기준 |
-| `datapath.py` | H&H 단일 사이클 데이터패스(L11 55, j 제외)를 단순화한 그리기 모듈. 부품 위치(`LAYOUT`)와 단계 경계(`STAGE_X`)를 고정해 multi-cycle·pipeline 편에서도 같은 자리를 쓴다 |
+| `datapath.py` | H&H 단일 사이클 데이터패스(L11 55, j 제외)를 단순화한 그리기 모듈. 부품 위치(`LAYOUT`)와 단계 경계(`STAGE_X`)를 고정. multi-cycle은 `variant="multi"` — 사용자가 준 H&H multi-cycle 그림의 배치를 따른다 |
 
 ## 공통 프로그램
 | # | 주소 | 명령어 | 넣은 이유 |

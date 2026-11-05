@@ -241,11 +241,11 @@
    "active": {
     "components": [
      "ALU",
-     "AND",
      "CTRL",
      "IORDMUX",
      "IR",
      "MEM",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -260,6 +260,7 @@
      "pc_srca",
      "pcen",
      "pcnext",
+     "pcwrite_or",
      "srca",
      "srcb"
     ]
@@ -959,11 +960,11 @@
    "active": {
     "components": [
      "ALU",
-     "AND",
      "CTRL",
      "IORDMUX",
      "IR",
      "MEM",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -978,6 +979,7 @@
      "pc_srca",
      "pcen",
      "pcnext",
+     "pcwrite_or",
      "srca",
      "srcb"
     ]
@@ -1543,11 +1545,11 @@
    "active": {
     "components": [
      "ALU",
-     "AND",
      "CTRL",
      "IORDMUX",
      "IR",
      "MEM",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -1562,6 +1564,7 @@
      "pc_srca",
      "pcen",
      "pcnext",
+     "pcwrite_or",
      "srca",
      "srcb"
     ]
@@ -2126,11 +2129,11 @@
    "active": {
     "components": [
      "ALU",
-     "AND",
      "CTRL",
      "IORDMUX",
      "IR",
      "MEM",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -2145,6 +2148,7 @@
      "pc_srca",
      "pcen",
      "pcnext",
+     "pcwrite_or",
      "srca",
      "srcb"
     ]
@@ -2708,11 +2712,11 @@
    "active": {
     "components": [
      "ALU",
-     "AND",
      "CTRL",
      "IORDMUX",
      "IR",
      "MEM",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -2727,6 +2731,7 @@
      "pc_srca",
      "pcen",
      "pcnext",
+     "pcwrite_or",
      "srca",
      "srcb"
     ]
@@ -3292,11 +3297,11 @@
    "active": {
     "components": [
      "ALU",
-     "AND",
      "CTRL",
      "IORDMUX",
      "IR",
      "MEM",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -3311,6 +3316,7 @@
      "pc_srca",
      "pcen",
      "pcnext",
+     "pcwrite_or",
      "srca",
      "srcb"
     ]
@@ -3876,11 +3882,11 @@
    "active": {
     "components": [
      "ALU",
-     "AND",
      "CTRL",
      "IORDMUX",
      "IR",
      "MEM",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -3895,6 +3901,7 @@
      "pc_srca",
      "pcen",
      "pcnext",
+     "pcwrite_or",
      "srca",
      "srcb"
     ]
@@ -4190,6 +4197,7 @@
      "AND",
      "B",
      "CTRL",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -4198,6 +4206,7 @@
     "wires": [
      "a_srca",
      "aluout_pcmux",
+     "and_or",
      "b_srcb",
      "branch_and",
      "pcen",
@@ -4329,11 +4338,11 @@
    "active": {
     "components": [
      "ALU",
-     "AND",
      "CTRL",
      "IORDMUX",
      "IR",
      "MEM",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -4348,6 +4357,7 @@
      "pc_srca",
      "pcen",
      "pcnext",
+     "pcwrite_or",
      "srca",
      "srcb"
     ]
@@ -4914,11 +4924,11 @@
    "active": {
     "components": [
      "ALU",
-     "AND",
      "CTRL",
      "IORDMUX",
      "IR",
      "MEM",
+     "OR",
      "PC",
      "PCMUX",
      "SRCAMUX",
@@ -4933,6 +4943,7 @@
      "pc_srca",
      "pcen",
      "pcnext",
+     "pcwrite_or",
      "srca",
      "srcb"
     ]

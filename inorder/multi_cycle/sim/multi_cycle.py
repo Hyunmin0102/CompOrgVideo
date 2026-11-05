@@ -107,9 +107,9 @@ def state_work(s, c, op_name):
         ev.append({"comp": comp, "stage": stage, "start": start, "end": start + dur})
         return start + dur
     if s == "S0":
-        comps += ["IORDMUX", "MEM", "IR", "SRCAMUX", "SRCBMUX", "ALU", "PCMUX", "AND"]
+        comps += ["IORDMUX", "MEM", "IR", "SRCAMUX", "SRCBMUX", "ALU", "PCMUX", "OR"]
         wires += ["pc_iord", "iord_adr", "mem_ir", "pc_srca", "four_srcb", "srca", "srcb",
-                  "aluresult_pcmux", "pcnext", "pcen"]
+                  "aluresult_pcmux", "pcnext", "pcwrite_or", "pcen"]
         add("MEM", 0, D["mem"], "IF")
         add("ALU", 0, D["alu"], "IF")
     elif s == "S1":
@@ -127,8 +127,8 @@ def state_work(s, c, op_name):
         wires += ["a_srca", "b_srcb", "srca", "srcb", "aluresult_aluout"]
         add("ALU", 0, D["alu"], "EX")
     elif s == "S8":
-        comps += ["A", "B", "SRCAMUX", "SRCBMUX", "ALU", "AND", "PCMUX", "ALUOUT"]
-        wires += ["a_srca", "b_srcb", "srca", "srcb", "zero_and", "branch_and", "pcen",
+        comps += ["A", "B", "SRCAMUX", "SRCBMUX", "ALU", "AND", "OR", "PCMUX", "ALUOUT"]
+        wires += ["a_srca", "b_srcb", "srca", "srcb", "zero_and", "branch_and", "and_or", "pcen",
                   "aluout_pcmux", "pcnext"]
         add("ALU", 0, D["alu"], "EX")
     elif s == "S3":

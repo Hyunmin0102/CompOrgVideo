@@ -19,7 +19,7 @@ Colours come from common.style only.
 from __future__ import annotations
 
 import numpy as np
-from manim import (DOWN, LEFT, RIGHT, UP, WHITE, Arc, Dot, Line, Polygon, Rectangle,
+from manim import (DOWN, LEFT, RIGHT, UP, WHITE, Arc, ArcBetweenPoints, Dot, Line, Polygon, Rectangle,
                    RoundedRectangle, Triangle, VGroup, VMobject)
 
 from common.style import FAINT, GREY, INK, MONO, ORANGE, YEL, txt
@@ -156,6 +156,12 @@ def _shape(kind, c, w, h):
         pts = [(x0, y + h / 2), (x1, y + h / 4), (x1, y - h / 4), (x0, y - h / 2),
                (x0, y - h / 10), (x0 + w * 0.28, y), (x0, y + h / 10)]
         return Polygon(*[[a, b, 0] for a, b in pts])
+    if kind == "or":
+        x0, x1 = x - w / 2, x + w / 2
+        back = ArcBetweenPoints([x0, y + h / 2, 0], [x0, y - h / 2, 0], angle=-0.9)
+        top = ArcBetweenPoints([x0, y + h / 2, 0], [x1, y, 0], angle=-0.6)
+        bot = ArcBetweenPoints([x0, y - h / 2, 0], [x1, y, 0], angle=0.6)
+        return VGroup(back, top, bot)
     if kind == "and":
         x0 = x - w / 2
         body = VMobject()
@@ -210,7 +216,7 @@ class Part(VGroup):
         else:
             self.body.set_stroke(INK, 1.8).set_fill(WHITE, 1)
             self.labels.set_color(INK)
-        if self.kind == "and":
+        if self.kind in ("and", "or"):
             self.body.set_fill(opacity=0)
         return self
 
@@ -258,10 +264,10 @@ class Datapath(VGroup):
         self.comp_group = VGroup(*self.comps.values())
         self.dots = VGroup(*[Dot([x, y, 0], radius=0.03, color=INK) for x, y in junc])
         if variant == "multi":
-            self.four = txt("4", 9).move_to([-1.96, 0.79, 0])
+            self.four = txt("4", 10).move_to([MC_FOUR[0], MC_FOUR[1], 0])
         else:
             self.four = txt("4", 11).move_to([-5.98, -0.60, 0]).shift(LEFT * 0.04)
-        self.fields = VGroup(
+        self.fields = VGroup() if variant == "multi" else VGroup(
             txt("25:21", 8).move_to([-4.12, 1.53, 0]),
             txt("20:16", 8).move_to([-4.12, 1.08, 0]),
             txt("20:16", 8).move_to([-3.40, 0.13, 0]),
@@ -305,98 +311,112 @@ class Datapath(VGroup):
 
 
 # ====================================================================== multi ===
-# Multi-cycle variant (multi-cycle deck slide 57 = PDF p.29), j path omitted.
-# Common parts keep the single-cycle place.  The unified memory takes the
-# instruction-memory slot; the non-architectural registers sit exactly on the
-# stage boundaries where the pipeline registers will go:
-#   IR @ IF/ID,  A,B @ ID/EX,  ALUOut @ EX/MEM,  Data @ MEM/WB.
+# Multi-cycle variant, drawn after the H&H multi-cycle processor figure the user
+# supplied (inorder/slides/B_multi_cycle_datapath_ref.png, 1100x555 px, no jump;
+# same figure as slide 57 = PDF p.29).  Coordinates below are pixel positions in
+# that image, mapped linearly onto the datapath area x -7.0..3.1, y 3.30..-1.45.
+_KX, _KY = 10.1 / 1020, 4.75 / 530
+
+
+def _px(x, y):
+    return (round(-7.0 + (x - 55) * _KX, 4), round(3.30 - (y - 15) * _KY, 4))
+
+
+def _part(kind, x, y, w, h, label=""):
+    return (kind, _px(x, y), w * _KX, h * _KY, label)
+
+
+def _path(*pts):
+    return [_px(x, y) for x, y in pts]
+
+
 MC_LAYOUT = {
-    "PCMUX":     ("mux",   (-6.72, 1.00), 0.24, 0.62, ""),
-    "PC":        ("reg",   (-6.22, 1.00), 0.38, 0.55, "PC"),
-    "IORDMUX":   ("mux",   (-5.80, 1.00), 0.20, 0.55, ""),
-    "MEM":       ("box",   (-5.18, 1.00), 0.78, 1.30, "Instr/Data\nMemory"),
-    "IR":        ("reg",   (-4.58, 1.00), 0.26, 0.55, "IR"),
-    "CTRL":      ("ctrl",  (-3.30, 2.55), 1.15, 0.72, "Control\nUnit"),
-    "RF":        ("box",   (-3.30, 1.00), 1.25, 1.50, "Register\nFile"),
-    "SIGNEXT":   ("box",   (-3.30, -0.65), 1.05, 0.30, "Sign Extend"),
-    "A":         ("reg",   (STAGE_X["ID/EX"], 1.30), 0.26, 0.36, "A"),
-    "B":         ("reg",   (STAGE_X["ID/EX"], 0.85), 0.26, 0.36, "B"),
-    "SRCAMUX":   ("mux",   (-1.70, 1.30), 0.20, 0.45, ""),
-    "SRCBMUX":   ("mux",   (-1.70, 0.60), 0.20, 0.82, ""),
-    "ALU":       ("alu",   (-1.00, 1.00), 0.55, 1.10, "ALU"),
-    "REGDSTMUX": ("mux",   (-1.00, -0.10), 0.22, 0.55, ""),
-    "SL2":       ("box",   (-1.75, -0.65), 0.42, 0.28, "<<2"),
-    "AND":       ("and",   (0.05, 2.75), 0.36, 0.34, ""),
-    "ALUOUT":    ("reg",   (STAGE_X["EX/MEM"], 1.00), 0.26, 0.55, "ALU\nOut"),
-    "DATA":      ("reg",   (STAGE_X["MEM/WB"], 1.05), 0.26, 0.50, "Data"),
-    "RESMUX":    ("mux",   (2.45, 0.90), 0.22, 0.62, ""),
+    "PC":      _part("reg", 90.5, 301, 24, 42, "PC"),
+    "IORDMUX": _part("mux", 152, 312, 20, 42),
+    "MEM":     _part("box", 235.5, 332.5, 83, 125, "Instr/Data\nMemory"),
+    "IR":      _part("reg", 329, 301, 24, 42, "IR"),
+    "DATA":    _part("reg", 329, 405, 24, 42, "Data"),
+    "CTRL":    _part("ctrl", 443.5, 141.5, 63, 155, "Control\nUnit"),
+    "REGDSTMUX": _part("mux", 422, 353, 20, 42),
+    "RESMUX":  _part("mux", 464, 395, 20, 42),
+    "RF":      _part("box", 547.5, 342.5, 125, 145, "Register\nFile"),
+    "SIGNEXT": _part("box", 547.5, 478, 125, 40, "Sign Extend"),
+    "A":       _part("reg", 630.5, 290, 21, 30, "A"),
+    "B":       _part("reg", 630.5, 316, 21, 30, "B"),
+    "SRCAMUX": _part("mux", 724, 281, 22, 42),
+    "SRCBMUX": _part("mux", 766, 343, 42, 84),
+    "SL2":     _part("box", 725, 425, 42, 40, "<<2"),
+    "ALU":     _part("alu", 849, 317, 42, 84, "ALU"),
+    "ALUOUT":  _part("reg", 973, 318, 24, 42, "ALU\nOut"),
+    "PCMUX":   _part("mux", 1046, 307, 22, 42),
+    "AND":     _part("and", 929, 99.5, 26, 22),
+    "OR":      _part("or", 966, 93.5, 28, 23),
 }
 MC_MUX_LABELS = {
-    "PCMUX": [("01", 1.17), ("00", 0.83)], "IORDMUX": [("0", 1.15), ("1", 0.85)],
-    "SRCAMUX": [("0", 1.43), ("1", 1.17)],
-    "SRCBMUX": [("00", 0.90), ("01", 0.70), ("10", 0.50), ("11", 0.30)],
-    "REGDSTMUX": [("0", 0.05), ("1", -0.25)], "RESMUX": [("1", 1.08), ("0", 0.72)],
+    "IORDMUX": [("0", _px(0, 302)[1]), ("1", _px(0, 322)[1])],
+    "REGDSTMUX": [("0", _px(0, 340)[1]), ("1", _px(0, 362)[1])],
+    "RESMUX": [("0", _px(0, 385)[1]), ("1", _px(0, 405)[1])],
+    "SRCAMUX": [("0", _px(0, 270)[1]), ("1", _px(0, 291)[1])],
+    "SRCBMUX": [("00", _px(0, 313)[1]), ("01", _px(0, 333)[1]), ("10", _px(0, 353)[1]),
+                ("11", _px(0, 373)[1])],
+    "PCMUX": [("0", _px(0, 296)[1]), ("1", _px(0, 317)[1])],
 }
-_SP = SPINE_X
+_S = 381.5      # instruction bus
 MC_WIRES = {
-    "pcnext":           [P["pcmux_out"], P["pc_in"]],
-    "pc_iord":          [(-6.03, 1.00), (-5.95, 1.00), (-5.95, 1.12), (-5.90, 1.12)],
-    "iord_adr":         [(-5.70, 1.00), (-5.57, 1.00)],
-    "aluout_iord":      [(0.43, 1.00), (0.55, 1.00), (0.55, -1.31), (-5.84, -1.31), (-5.84, 0.74)],
-    "mem_ir":           [(-4.79, 1.00), (-4.71, 1.00)],
-    "mem_data":         [(-4.79, 1.00), (-4.74, 1.00), (-4.74, 2.08), (1.78, 2.08), (1.78, 1.05),
-                         (1.89, 1.05)],
-    "b_wd":             [(-2.20, 0.85), (-2.10, 0.85), (-2.10, -0.95), (-5.70, -0.95), (-5.70, 0.55),
-                         (-5.57, 0.55)],
-    "ir_ctrl":          [(-4.45, 1.00), (_SP, 1.00), (_SP, 2.55), P["ctrl_in"]],
-    "ir_a1":            [(-4.45, 1.00), (_SP, 1.00), (_SP, 1.45), P["rf_a1"]],
-    "ir_a2":            [(-4.45, 1.00), P["rf_a2"]],
-    "ir_rt_wr":         [(-4.45, 1.00), (_SP, 1.00), (_SP, 0.05), P["rdm_in0"]],
-    "ir_rd_wr":         [(-4.45, 1.00), (_SP, 1.00), (_SP, -0.25), P["rdm_in1"]],
-    "ir_imm":           [(-4.45, 1.00), (_SP, 1.00), (_SP, -0.65), P["se_in"]],
-    "writereg":         WIRES["writereg"],
-    "rd1_a":            [P["rf_rd1"], (-2.46, 1.30)],
-    "rd2_b":            [P["rf_rd2"], (-2.46, 0.85)],
-    "pc_srca":          [(-6.03, 1.00), (-5.99, 1.00), (-5.99, 2.98), (-2.00, 2.98), (-2.00, 1.43),
-                         (-1.80, 1.43)],
-    "a_srca":           [(-2.20, 1.30), (-1.92, 1.30), (-1.92, 1.17), (-1.80, 1.17)],
-    "b_srcb":           [(-2.20, 0.85), (-1.92, 0.85), (-1.92, 0.90), (-1.80, 0.90)],
-    "four_srcb":        [(-2.04, 0.70), (-1.80, 0.70)],
-    "signimm_srcb":     [P["se_out"], (-2.45, -0.65), (-2.45, 0.50), (-1.80, 0.50)],
-    "signimm_sl2":      [P["se_out"], P["sl2_in"]],
-    "sl2_srcb":         [P["sl2_out"], (-1.40, -0.65), (-1.40, 0.16), (-1.96, 0.16), (-1.96, 0.30),
-                         (-1.80, 0.30)],
-    "srca":             [(-1.60, 1.30), P["alu_a"]],
-    "srcb":             [(-1.60, 0.60), (-1.45, 0.60), (-1.45, 0.70), P["alu_b"]],
-    "aluresult_aluout": [P["alu_y"], (0.17, 1.00)],
-    "aluresult_pcmux":  [P["alu_y"], (0.00, 1.00), (0.00, -1.08), (-6.95, -1.08), (-6.95, 0.83),
-                         (-6.84, 0.83)],
-    "aluout_pcmux":     [(0.43, 1.00), (0.55, 1.00), (0.55, -1.20), (-7.03, -1.20), (-7.03, 1.17),
-                         (-6.84, 1.17)],
-    "aluout_res":       [(0.43, 1.00), (0.55, 1.00), (0.55, 0.72), (2.34, 0.72)],
-    "data_res":         [(2.15, 1.05), (2.25, 1.05), (2.25, 1.08), (2.34, 1.08)],
-    "result_wd3":       [P["rsm_out"], (2.75, 0.90), (2.75, -1.42), (X_RES, -1.42), (X_RES, 0.35),
-                         P["rf_wd3"]],
-    "zero_and":         WIRES["zero_and"],
-    "branch_and":       WIRES["branch_and"],
-    "pcen":             [P["and_y"], (0.45, 2.75), (0.45, Y_TOP), (-6.22, Y_TOP), (-6.22, 1.30)],
+    "pcnext":           _path((1056, 307), (1068, 307), (1068, 540), (59, 540), (59, 302), (80, 302)),
+    "pc_iord":          _path((101, 302), (142, 302)),
+    "pc_srca":          _path((101, 302), (131, 302), (131, 229), (703, 229), (703, 270), (713, 270)),
+    "iord_adr":         _path((162, 312), (194, 312)),
+    "aluout_iord":      _path((984, 317), (1025, 317), (1025, 518), (131, 518), (131, 322), (142, 322)),
+    "mem_ir":           _path((277, 302), (318, 302)),
+    "mem_data":         _path((277, 302), (298, 302), (298, 405), (318, 405)),
+    "b_wd":             _path((641, 316), (662, 316), (662, 436), (173, 436), (173, 374), (194, 374)),
+    "ir_ctrl":          _path((340, 302), (_S, 302), (_S, 177), (412, 177)),
+    "ir_a1":            _path((340, 302), (_S, 302), (_S, 291), (485, 291)),
+    "ir_a2":            _path((340, 302), (_S, 302), (_S, 312), (485, 312)),
+    "ir_rt_wr":         _path((340, 302), (_S, 302), (_S, 340), (412, 340)),
+    "ir_rd_wr":         _path((340, 302), (_S, 302), (_S, 361), (412, 361)),
+    "ir_imm":           _path((340, 302), (_S, 302), (_S, 478), (485, 478)),
+    "writereg":         _path((432, 353), (485, 353)),
+    "data_res":         _path((340, 405), (454, 405)),
+    "aluout_res":       _path((984, 317), (1025, 317), (1025, 518), (443, 518), (443, 385), (454, 385)),
+    "result_wd3":       _path((474, 395), (485, 395)),
+    "rd1_a":            _path((610, 291), (620, 291)),
+    "rd2_b":            _path((610, 316), (620, 316)),
+    "a_srca":           _path((641, 291), (713, 291)),
+    "b_srcb":           _path((641, 316), (745, 316)),
+    "four_srcb":        _path((722, 333), (745, 333)),
+    "signimm_srcb":     _path((610, 475), (682, 475), (682, 353), (745, 353)),
+    "signimm_sl2":      _path((610, 475), (725, 475), (725, 446)),
+    "sl2_srcb":         _path((725, 405), (725, 373), (745, 373)),
+    "srca":             _path((735, 281), (816, 281), (816, 291), (828, 291)),
+    "srcb":             _path((787, 343), (828, 343)),
+    "aluresult_aluout": _path((870, 317), (962, 317)),
+    "aluresult_pcmux":  _path((870, 317), (952, 317), (952, 260), (1025, 260), (1025, 296), (1035, 296)),
+    "aluout_pcmux":     _path((984, 317), (1035, 317)),
+    "zero_and":         _path((870, 292), (910, 292), (910, 105), (916, 105)),
+    "branch_and":       _path((475, 87), (900, 87), (900, 94), (916, 94)),
+    "pcwrite_or":       _path((475, 66), (947, 66), (947, 87), (955, 87)),
+    "and_or":           _path((942, 100), (955, 100)),
+    "pcen":             _path((980, 94), (994, 94), (994, 22), (69, 22), (69, 333), (90, 333), (90, 322)),
 }
-MC_JUNCTIONS = [(-5.99, 1.00), (-4.74, 1.00), (_SP, 1.00), (_SP, 0.05), (_SP, -0.25), (_SP, 1.45),
-                (-2.10, 0.85), (-2.45, -0.65), (0.00, 1.00), (0.55, 1.00), (0.55, 0.72), (0.55, -1.20)]
-MC_TAGS = {"PCWrite": ((0.05, 3.25), "PCWrite"), "Branch": ((-1.30, 2.94), "Branch"),
-           "PCSrc": ((-6.72, 1.48), "PCSrc"), "IorD": ((-5.80, 1.42), "IorD"),
-           "MemWrite": ((-5.18, 1.82), "MemWrite"), "IRWrite": ((-4.58, 1.42), "IRWrite"),
-           "RegWrite": ((-3.30, 1.90), "RegWrite"), "RegDst": ((-1.00, -0.50), "RegDst"),
-           "ALUSrcA": ((-1.70, 1.66), "ALUSrcA"), "ALUSrcB": ((-1.20, 0.30), "ALUSrcB"),
-           "ALUControl": ((-0.90, 1.72), "ALUControl"), "MemtoReg": ((2.45, 1.36), "MemtoReg")}
-MC_PORTS = [("A1", -3.78, 1.45), ("A2", -3.78, 1.00), ("A3", -3.78, 0.55), ("WD3", -3.74, 0.35),
-            ("RD1", -2.84, 1.30), ("RD2", -2.84, 0.85), ("A", -5.50, 1.00), ("RD", -4.90, 1.00),
-            ("WD", -5.47, 0.55), ("Zero", -0.56, 1.40), ("EN", -6.22, 0.82), ("EN", -4.58, 0.82)]
-MC_SLOTS = {
-    "PC": ((-6.22, 0.55), DOWN), "Adr": ((-5.55, 1.75), UP), "ReadData": ((-4.10, 2.20), UP),
-    "IR": ((-4.58, 0.55), DOWN), "RD1": ((-2.50, 1.60), UP), "RD2": ((-2.50, 0.55), DOWN),
-    "SignImm": ((-2.62, -0.80), DOWN), "SrcA": ((-1.45, 1.45), UP), "SrcB": ((-1.30, 0.55), DOWN),
-    "ALUResult": ((-0.33, 0.86), DOWN), "Zero": ((-0.40, 2.05), RIGHT), "ALUOut": ((0.30, 0.55), DOWN),
-    "Data": ((2.02, 1.50), UP), "WriteReg": ((-0.42, -0.24), RIGHT), "WD3": ((2.98, 0.35), RIGHT),
-    "WriteData": ((-4.0, -0.82), UP), "PCNext": ((-6.50, -1.55), DOWN),
-}
+MC_JUNCTIONS = [_px(*q) for q in [(131, 302), (298, 302), (_S, 302), (_S, 291), (_S, 312), (_S, 340),
+                                  (_S, 361), (662, 316), (682, 475), (952, 317), (1025, 317),
+                                  (1025, 518)]]
+MC_TAGS = {k: (_px(x, y), k) for k, x, y in [
+    ("PCWrite", 640, 58), ("Branch", 640, 79), ("PCSrc", 1046, 276), ("IorD", 152, 280),
+    ("MemWrite", 236, 258), ("IRWrite", 300, 266), ("RegDst", 422, 322), ("MemtoReg", 464, 428),
+    ("RegWrite", 547, 258), ("ALUSrcA", 724, 248), ("ALUSrcB", 774, 292), ("ALUControl", 849, 266)]}
+MC_PORTS = [(t, *_px(x, y)) for t, x, y in [
+    ("A", 202, 312), ("RD", 266, 302), ("WD", 206, 374), ("EN", 90.5, 314), ("EN", 329, 314),
+    ("A1", 497, 291), ("A2", 497, 312), ("A3", 497, 353), ("WD3", 500, 395), ("RD1", 597, 291),
+    ("RD2", 597, 316), ("Zero", 888, 284), ("Op", 400, 172), ("Funct", 398, 196), ("PCEn", 1010, 84),
+    ("25:21", 398, 286), ("20:16", 398, 307), ("20:16", 398, 335),
+    ("15:11", 398, 356), ("15:0", 398, 472)]]
+MC_FOUR = _px(712, 333)
+MC_SLOTS = {k: (_px(x, y), d) for k, x, y, d in [
+    ("PC", 112, 352, DOWN), ("Adr", 178, 298, UP), ("ReadData", 296, 285, UP), ("IR", 329, 252, UP),
+    ("Data", 329, 440, DOWN), ("RD1", 660, 280, UP), ("RD2", 700, 326, DOWN), ("SignImm", 640, 466, UP),
+    ("SrcA", 785, 270, UP), ("SrcB", 805, 333, UP), ("ALUResult", 912, 330, DOWN),
+    ("Zero", 896, 278, UP), ("ALUOut", 1000, 350, DOWN), ("WriteReg", 452, 343, UP),
+    ("WD3", 476, 420, DOWN), ("WriteData", 420, 448, DOWN), ("PCNext", 1040, 530, UP)]}
