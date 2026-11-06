@@ -1,0 +1,1929 @@
+{
+ "video": "inorder/pipeline",
+ "config": {
+  "delays_ps": {
+   "mem": 200,
+   "alu": 100,
+   "adder": 100,
+   "rf": 50,
+   "other": 0
+  },
+  "stage_ps": {
+   "F": 200,
+   "D": 100,
+   "E": 100,
+   "M": 200,
+   "W": 100
+  },
+  "period_ps": 200,
+  "alu_control_encoding": {
+   "add": "010",
+   "sub": "110",
+   "and": "000",
+   "or": "001",
+   "slt": "111"
+  },
+  "assumptions": [
+   "클록 주기: 슬라이드 85의 550ps는 다른 지연 표(H&H 표 7.6: 메모리 250, ALU 200 …)로 계산한 값. 1·2편과 비교하려고 같은 L10 90 지연(메모리 200, ALU·덧셈기 100, 레지스터 파일 50, 나머지 0)과 슬라이드 83의 단계별 식(ID·WB는 반 사이클이라 ×2)을 써서 가장 긴 단계 = 메모리 200ps → 클록 200ps.",
+   "제어 유닛과 ALUControl 인코딩은 1편과 같음(슬라이드 20: same control unit as single-cycle). X(don't care)인 RegDst·MemtoReg는 하드웨어에서 0으로 둠 — 1로 바꿔도 결과가 같음을 검증.",
+   "IF/ID 레지스터는 StallD가 1이면 CLR(PCSrcD)보다 유지가 우선(H&H flopenrc). 이 프로그램에서는 둘이 겹치지 않음.",
+   "프로그램 끝(0x28) 이후의 fetch는 bubble(nop)로 처리.",
+   "j는 공통 프로그램에서 쓰지 않으므로 그리지 않음."
+  ],
+  "program": [
+   {
+    "addr": 0,
+    "word": "8E080000",
+    "text": "lw   $t0, 0($s0)",
+    "reason": "Mem[0x40]=7을 읽어 오는 load. 바로 다음 명령어가 이 값을 쓴다."
+   },
+   {
+    "addr": 4,
+    "word": "01114820",
+    "text": "add  $t1, $t0, $s1",
+    "reason": "lw 결과 $t0을 곧바로 사용 → load-use 의존 (파이프라인 1 stall)."
+   },
+   {
+    "addr": 8,
+    "word": "01325022",
+    "text": "sub  $t2, $t1, $s2",
+    "reason": "바로 앞 add의 결과 $t1 사용 → 거리 1 RAW (MEM→EX forwarding)."
+   },
+   {
+    "addr": 12,
+    "word": "01335824",
+    "text": "and  $t3, $t1, $s3",
+    "reason": "두 칸 앞 add의 결과 $t1 사용 → 거리 2 RAW (WB→EX forwarding). 결과 4."
+   },
+   {
+    "addr": 16,
+    "word": "AE090004",
+    "text": "sw   $t1, 4($s0)",
+    "reason": "sw: $t1(=12)을 Mem[0x44]에 저장. $t1은 세 칸 앞이라 forwarding 불필요."
+   },
+   {
+    "addr": 20,
+    "word": "0232602A",
+    "text": "slt  $t4, $s1, $s2",
+    "reason": "slt: 독립 명령어. beq와 그 피연산자 사이 간격을 벌려 비교 stall을 없앤다."
+   },
+   {
+    "addr": 24,
+    "word": "114B0001",
+    "text": "beq  $t2, $t3, skip",
+    "reason": "beq $t2,$t3: 둘 다 4 → taken. 피연산자가 3·4칸 앞에서 계산돼 stall 없음."
+   },
+   {
+    "addr": 28,
+    "word": "0231A020",
+    "text": "add  $s4, $s1, $s1",
+    "reason": "taken 분기로 건너뛰는 명령어. 실행됐다면 $s4=10이 되므로 최종 상태로 확인 가능."
+   },
+   {
+    "addr": 32,
+    "word": "216D000A",
+    "text": "addi $t5, $t3, 10",
+    "reason": "분기 목표(skip). addi로 I-type ALU 경로를 보여준다. $t5 = 4+10 = 14."
+   },
+   {
+    "addr": 36,
+    "word": "01937025",
+    "text": "or   $t6, $t4, $s3",
+    "reason": "마지막 명령어 or. $t6 = 1 | 6 = 7. 피연산자는 모두 멀리 앞에서 계산됨."
+   }
+  ],
+  "init_regs": {
+   "$s0": 64,
+   "$s1": 5,
+   "$s2": 8,
+   "$s3": 6
+  },
+  "init_mem": {
+   "0x40": 7,
+   "0x44": 0,
+   "0x48": 0
+  },
+  "show_regs": [
+   "$t0",
+   "$t1",
+   "$t2",
+   "$t3",
+   "$t4",
+   "$t5",
+   "$t6",
+   "$s0",
+   "$s1",
+   "$s2",
+   "$s3",
+   "$s4"
+  ],
+  "show_mem": [
+   "0x40",
+   "0x44",
+   "0x48"
+  ]
+ },
+ "steps": [
+  {
+   "cycle": 1,
+   "pcF": 0,
+   "occupancy": {
+    "F": 1,
+    "D": null,
+    "E": null,
+    "M": null,
+    "W": null
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 0,
+    "PCPlus4F": 4,
+    "word": "8E080000"
+   },
+   "D": null,
+   "E": null,
+   "M": null,
+   "W": null,
+   "PCnext": 4,
+   "changes": {
+    "regs": {},
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 0,
+    "$t1": 0,
+    "$t2": 0,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 2,
+   "pcF": 4,
+   "occupancy": {
+    "F": 2,
+    "D": 1,
+    "E": null,
+    "M": null,
+    "W": null
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 4,
+    "PCPlus4F": 8,
+    "word": "01114820"
+   },
+   "D": {
+    "control": {
+     "RegWrite": 1,
+     "RegDst": 0,
+     "ALUSrc": 1,
+     "Branch": 0,
+     "MemWrite": 0,
+     "MemtoReg": 1,
+     "ALUControl": "010"
+    },
+    "alu_op": "add",
+    "rsD": "$s0",
+    "rtD": "$t0",
+    "RD1": 64,
+    "RD2": 0,
+    "SignImmD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "EqualD": null,
+    "PCSrcD": 0,
+    "PCBranchD": null
+   },
+   "E": null,
+   "M": null,
+   "W": null,
+   "PCnext": 8,
+   "changes": {
+    "regs": {},
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 0,
+    "$t1": 0,
+    "$t2": 0,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 3,
+   "pcF": 8,
+   "occupancy": {
+    "F": 3,
+    "D": 2,
+    "E": 1,
+    "M": null,
+    "W": null
+   },
+   "stalled": {
+    "F": 1,
+    "D": 1
+   },
+   "bubble_into_E": 1,
+   "hazard": {
+    "lwstall": 1,
+    "branchstall": 0,
+    "StallF": 1,
+    "StallD": 1,
+    "FlushE": 1,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [
+    {
+     "type": "lwstall",
+     "from": 1,
+     "to": 2,
+     "reg": "$t0"
+    }
+   ],
+   "F": {
+    "pc": 8,
+    "PCPlus4F": 12,
+    "word": "01325022"
+   },
+   "D": {
+    "control": {
+     "RegWrite": 1,
+     "RegDst": 1,
+     "ALUSrc": 0,
+     "Branch": 0,
+     "MemWrite": 0,
+     "MemtoReg": 0,
+     "ALUControl": "010"
+    },
+    "alu_op": "add",
+    "rsD": "$t0",
+    "rtD": "$s1",
+    "RD1": 0,
+    "RD2": 5,
+    "SignImmD": 18464,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "EqualD": null,
+    "PCSrcD": 0,
+    "PCBranchD": null
+   },
+   "E": {
+    "ForwardAE": "00",
+    "ForwardBE": "00",
+    "SrcAE": 64,
+    "SrcBE": 0,
+    "WriteDataE": 0,
+    "ALUOutE": 64,
+    "WriteRegE": "$t0"
+   },
+   "M": null,
+   "W": null,
+   "PCnext": 8,
+   "changes": {
+    "regs": {},
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 0,
+    "$t1": 0,
+    "$t2": 0,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 4,
+   "pcF": 8,
+   "occupancy": {
+    "F": 3,
+    "D": 2,
+    "E": null,
+    "M": 1,
+    "W": null
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 1,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 8,
+    "PCPlus4F": 12,
+    "word": "01325022"
+   },
+   "D": {
+    "control": {
+     "RegWrite": 1,
+     "RegDst": 1,
+     "ALUSrc": 0,
+     "Branch": 0,
+     "MemWrite": 0,
+     "MemtoReg": 0,
+     "ALUControl": "010"
+    },
+    "alu_op": "add",
+    "rsD": "$t0",
+    "rtD": "$s1",
+    "RD1": 0,
+    "RD2": 5,
+    "SignImmD": 18464,
+    "ForwardAD": 1,
+    "ForwardBD": 0,
+    "EqualD": null,
+    "PCSrcD": 0,
+    "PCBranchD": null
+   },
+   "E": null,
+   "M": {
+    "ALUOutM": 64,
+    "MemWriteM": 0,
+    "WriteDataM": 0,
+    "ReadDataM": 7,
+    "WriteRegM": "$t0"
+   },
+   "W": null,
+   "PCnext": 12,
+   "changes": {
+    "regs": {},
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 0,
+    "$t1": 0,
+    "$t2": 0,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 5,
+   "pcF": 12,
+   "occupancy": {
+    "F": 4,
+    "D": 3,
+    "E": 2,
+    "M": null,
+    "W": 1
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "01",
+    "ForwardBE": "00"
+   },
+   "events": [
+    {
+     "type": "fwd_WB_EX",
+     "port": "A",
+     "reg": "$t0",
+     "from": 1,
+     "to": 2,
+     "value": 7
+    }
+   ],
+   "F": {
+    "pc": 12,
+    "PCPlus4F": 16,
+    "word": "01335824"
+   },
+   "D": {
+    "control": {
+     "RegWrite": 1,
+     "RegDst": 1,
+     "ALUSrc": 0,
+     "Branch": 0,
+     "MemWrite": 0,
+     "MemtoReg": 0,
+     "ALUControl": "110"
+    },
+    "alu_op": "sub",
+    "rsD": "$t1",
+    "rtD": "$s2",
+    "RD1": 0,
+    "RD2": 8,
+    "SignImmD": 20514,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "EqualD": null,
+    "PCSrcD": 0,
+    "PCBranchD": null
+   },
+   "E": {
+    "ForwardAE": "01",
+    "ForwardBE": "00",
+    "SrcAE": 7,
+    "SrcBE": 5,
+    "WriteDataE": 5,
+    "ALUOutE": 12,
+    "WriteRegE": "$t1"
+   },
+   "M": null,
+   "W": {
+    "ResultW": 7,
+    "RegWriteW": 1,
+    "WriteRegW": "$t0"
+   },
+   "PCnext": 16,
+   "changes": {
+    "regs": {
+     "$t0": 7
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 0,
+    "$t2": 0,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 6,
+   "pcF": 16,
+   "occupancy": {
+    "F": 5,
+    "D": 4,
+    "E": 3,
+    "M": 2,
+    "W": null
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 1,
+    "ForwardBD": 0,
+    "ForwardAE": "10",
+    "ForwardBE": "00"
+   },
+   "events": [
+    {
+     "type": "fwd_MEM_EX",
+     "port": "A",
+     "reg": "$t1",
+     "from": 2,
+     "to": 3,
+     "value": 12
+    }
+   ],
+   "F": {
+    "pc": 16,
+    "PCPlus4F": 20,
+    "word": "AE090004"
+   },
+   "D": {
+    "control": {
+     "RegWrite": 1,
+     "RegDst": 1,
+     "ALUSrc": 0,
+     "Branch": 0,
+     "MemWrite": 0,
+     "MemtoReg": 0,
+     "ALUControl": "000"
+    },
+    "alu_op": "and",
+    "rsD": "$t1",
+    "rtD": "$s3",
+    "RD1": 0,
+    "RD2": 6,
+    "SignImmD": 22564,
+    "ForwardAD": 1,
+    "ForwardBD": 0,
+    "EqualD": null,
+    "PCSrcD": 0,
+    "PCBranchD": null
+   },
+   "E": {
+    "ForwardAE": "10",
+    "ForwardBE": "00",
+    "SrcAE": 12,
+    "SrcBE": 8,
+    "WriteDataE": 8,
+    "ALUOutE": 4,
+    "WriteRegE": "$t2"
+   },
+   "M": {
+    "ALUOutM": 12,
+    "MemWriteM": 0,
+    "WriteDataM": 5,
+    "ReadDataM": null,
+    "WriteRegM": "$t1"
+   },
+   "W": null,
+   "PCnext": 20,
+   "changes": {
+    "regs": {},
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 0,
+    "$t2": 0,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 7,
+   "pcF": 20,
+   "occupancy": {
+    "F": 6,
+    "D": 5,
+    "E": 4,
+    "M": 3,
+    "W": 2
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "01",
+    "ForwardBE": "00"
+   },
+   "events": [
+    {
+     "type": "fwd_WB_EX",
+     "port": "A",
+     "reg": "$t1",
+     "from": 2,
+     "to": 4,
+     "value": 12
+    },
+    {
+     "type": "rf_half",
+     "reg": "$t1",
+     "from": 2,
+     "to": 5,
+     "value": 12
+    }
+   ],
+   "F": {
+    "pc": 20,
+    "PCPlus4F": 24,
+    "word": "0232602A"
+   },
+   "D": {
+    "control": {
+     "RegWrite": 0,
+     "RegDst": "X",
+     "ALUSrc": 1,
+     "Branch": 0,
+     "MemWrite": 1,
+     "MemtoReg": "X",
+     "ALUControl": "010"
+    },
+    "alu_op": "add",
+    "rsD": "$s0",
+    "rtD": "$t1",
+    "RD1": 64,
+    "RD2": 12,
+    "SignImmD": 4,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "EqualD": null,
+    "PCSrcD": 0,
+    "PCBranchD": null
+   },
+   "E": {
+    "ForwardAE": "01",
+    "ForwardBE": "00",
+    "SrcAE": 12,
+    "SrcBE": 6,
+    "WriteDataE": 6,
+    "ALUOutE": 4,
+    "WriteRegE": "$t3"
+   },
+   "M": {
+    "ALUOutM": 4,
+    "MemWriteM": 0,
+    "WriteDataM": 8,
+    "ReadDataM": null,
+    "WriteRegM": "$t2"
+   },
+   "W": {
+    "ResultW": 12,
+    "RegWriteW": 1,
+    "WriteRegW": "$t1"
+   },
+   "PCnext": 24,
+   "changes": {
+    "regs": {
+     "$t1": 12
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 0,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 8,
+   "pcF": 24,
+   "occupancy": {
+    "F": 7,
+    "D": 6,
+    "E": 5,
+    "M": 4,
+    "W": 3
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 24,
+    "PCPlus4F": 28,
+    "word": "114B0001"
+   },
+   "D": {
+    "control": {
+     "RegWrite": 1,
+     "RegDst": 1,
+     "ALUSrc": 0,
+     "Branch": 0,
+     "MemWrite": 0,
+     "MemtoReg": 0,
+     "ALUControl": "111"
+    },
+    "alu_op": "slt",
+    "rsD": "$s1",
+    "rtD": "$s2",
+    "RD1": 5,
+    "RD2": 8,
+    "SignImmD": 24618,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "EqualD": null,
+    "PCSrcD": 0,
+    "PCBranchD": null
+   },
+   "E": {
+    "ForwardAE": "00",
+    "ForwardBE": "00",
+    "SrcAE": 64,
+    "SrcBE": 4,
+    "WriteDataE": 12,
+    "ALUOutE": 68,
+    "WriteRegE": "$t1"
+   },
+   "M": {
+    "ALUOutM": 4,
+    "MemWriteM": 0,
+    "WriteDataM": 6,
+    "ReadDataM": null,
+    "WriteRegM": "$t3"
+   },
+   "W": {
+    "ResultW": 4,
+    "RegWriteW": 1,
+    "WriteRegW": "$t2"
+   },
+   "PCnext": 28,
+   "changes": {
+    "regs": {
+     "$t2": 4
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 9,
+   "pcF": 28,
+   "occupancy": {
+    "F": 8,
+    "D": 7,
+    "E": 6,
+    "M": 5,
+    "W": 4
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 1,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [
+    {
+     "type": "rf_half",
+     "reg": "$t3",
+     "from": 4,
+     "to": 7,
+     "value": 4
+    },
+    {
+     "type": "flush",
+     "flushed": 8,
+     "by": 7,
+     "target": 32
+    }
+   ],
+   "F": {
+    "pc": 28,
+    "PCPlus4F": 32,
+    "word": "0231A020"
+   },
+   "D": {
+    "control": {
+     "RegWrite": 0,
+     "RegDst": "X",
+     "ALUSrc": 0,
+     "Branch": 1,
+     "MemWrite": 0,
+     "MemtoReg": "X",
+     "ALUControl": "110"
+    },
+    "alu_op": "sub",
+    "rsD": "$t2",
+    "rtD": "$t3",
+    "RD1": 4,
+    "RD2": 4,
+    "SignImmD": 1,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "EqualD": 1,
+    "PCSrcD": 1,
+    "PCBranchD": 32
+   },
+   "E": {
+    "ForwardAE": "00",
+    "ForwardBE": "00",
+    "SrcAE": 5,
+    "SrcBE": 8,
+    "WriteDataE": 8,
+    "ALUOutE": 1,
+    "WriteRegE": "$t4"
+   },
+   "M": {
+    "ALUOutM": 68,
+    "MemWriteM": 1,
+    "WriteDataM": 12,
+    "ReadDataM": null,
+    "WriteRegM": "$t1"
+   },
+   "W": {
+    "ResultW": 4,
+    "RegWriteW": 1,
+    "WriteRegW": "$t3"
+   },
+   "PCnext": 32,
+   "changes": {
+    "regs": {
+     "$t3": 4
+    },
+    "mem": {
+     "0x44": 12
+    }
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 10,
+   "pcF": 32,
+   "occupancy": {
+    "F": 9,
+    "D": null,
+    "E": 7,
+    "M": 6,
+    "W": 5
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 32,
+    "PCPlus4F": 36,
+    "word": "216D000A"
+   },
+   "D": null,
+   "E": {
+    "ForwardAE": "00",
+    "ForwardBE": "00",
+    "SrcAE": 4,
+    "SrcBE": 4,
+    "WriteDataE": 4,
+    "ALUOutE": 0,
+    "WriteRegE": "$t3"
+   },
+   "M": {
+    "ALUOutM": 1,
+    "MemWriteM": 0,
+    "WriteDataM": 8,
+    "ReadDataM": null,
+    "WriteRegM": "$t4"
+   },
+   "W": {
+    "ResultW": 68,
+    "RegWriteW": 0,
+    "WriteRegW": "$t1"
+   },
+   "PCnext": 36,
+   "changes": {
+    "regs": {},
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 11,
+   "pcF": 36,
+   "occupancy": {
+    "F": 10,
+    "D": 9,
+    "E": null,
+    "M": 7,
+    "W": 6
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 36,
+    "PCPlus4F": 40,
+    "word": "01937025"
+   },
+   "D": {
+    "control": {
+     "RegWrite": 1,
+     "RegDst": 0,
+     "ALUSrc": 1,
+     "Branch": 0,
+     "MemWrite": 0,
+     "MemtoReg": 0,
+     "ALUControl": "010"
+    },
+    "alu_op": "add",
+    "rsD": "$t3",
+    "rtD": "$t5",
+    "RD1": 4,
+    "RD2": 0,
+    "SignImmD": 10,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "EqualD": null,
+    "PCSrcD": 0,
+    "PCBranchD": null
+   },
+   "E": null,
+   "M": {
+    "ALUOutM": 0,
+    "MemWriteM": 0,
+    "WriteDataM": 4,
+    "ReadDataM": null,
+    "WriteRegM": "$t3"
+   },
+   "W": {
+    "ResultW": 1,
+    "RegWriteW": 1,
+    "WriteRegW": "$t4"
+   },
+   "PCnext": 40,
+   "changes": {
+    "regs": {
+     "$t4": 1
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 1,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 12,
+   "pcF": 40,
+   "occupancy": {
+    "F": null,
+    "D": 10,
+    "E": 9,
+    "M": null,
+    "W": 7
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 40,
+    "PCPlus4F": 44,
+    "word": null
+   },
+   "D": {
+    "control": {
+     "RegWrite": 1,
+     "RegDst": 1,
+     "ALUSrc": 0,
+     "Branch": 0,
+     "MemWrite": 0,
+     "MemtoReg": 0,
+     "ALUControl": "001"
+    },
+    "alu_op": "or",
+    "rsD": "$t4",
+    "rtD": "$s3",
+    "RD1": 1,
+    "RD2": 6,
+    "SignImmD": 28709,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "EqualD": null,
+    "PCSrcD": 0,
+    "PCBranchD": null
+   },
+   "E": {
+    "ForwardAE": "00",
+    "ForwardBE": "00",
+    "SrcAE": 4,
+    "SrcBE": 10,
+    "WriteDataE": 0,
+    "ALUOutE": 14,
+    "WriteRegE": "$t5"
+   },
+   "M": null,
+   "W": {
+    "ResultW": 0,
+    "RegWriteW": 0,
+    "WriteRegW": "$t3"
+   },
+   "PCnext": 44,
+   "changes": {
+    "regs": {},
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 1,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 13,
+   "pcF": 44,
+   "occupancy": {
+    "F": null,
+    "D": null,
+    "E": 10,
+    "M": 9,
+    "W": null
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 44,
+    "PCPlus4F": 48,
+    "word": null
+   },
+   "D": null,
+   "E": {
+    "ForwardAE": "00",
+    "ForwardBE": "00",
+    "SrcAE": 1,
+    "SrcBE": 6,
+    "WriteDataE": 6,
+    "ALUOutE": 7,
+    "WriteRegE": "$t6"
+   },
+   "M": {
+    "ALUOutM": 14,
+    "MemWriteM": 0,
+    "WriteDataM": 0,
+    "ReadDataM": null,
+    "WriteRegM": "$t5"
+   },
+   "W": null,
+   "PCnext": 48,
+   "changes": {
+    "regs": {},
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 1,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 14,
+   "pcF": 48,
+   "occupancy": {
+    "F": null,
+    "D": null,
+    "E": null,
+    "M": 10,
+    "W": 9
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 48,
+    "PCPlus4F": 52,
+    "word": null
+   },
+   "D": null,
+   "E": null,
+   "M": {
+    "ALUOutM": 7,
+    "MemWriteM": 0,
+    "WriteDataM": 6,
+    "ReadDataM": null,
+    "WriteRegM": "$t6"
+   },
+   "W": {
+    "ResultW": 14,
+    "RegWriteW": 1,
+    "WriteRegW": "$t5"
+   },
+   "PCnext": 52,
+   "changes": {
+    "regs": {
+     "$t5": 14
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 1,
+    "$t5": 14,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 15,
+   "pcF": 52,
+   "occupancy": {
+    "F": null,
+    "D": null,
+    "E": null,
+    "M": null,
+    "W": 10
+   },
+   "stalled": {
+    "F": 0,
+    "D": 0
+   },
+   "bubble_into_E": 0,
+   "hazard": {
+    "lwstall": 0,
+    "branchstall": 0,
+    "StallF": 0,
+    "StallD": 0,
+    "FlushE": 0,
+    "PCSrcD": 0,
+    "ForwardAD": 0,
+    "ForwardBD": 0,
+    "ForwardAE": "00",
+    "ForwardBE": "00"
+   },
+   "events": [],
+   "F": {
+    "pc": 52,
+    "PCPlus4F": 56,
+    "word": null
+   },
+   "D": null,
+   "E": null,
+   "M": null,
+   "W": {
+    "ResultW": 7,
+    "RegWriteW": 1,
+    "WriteRegW": "$t6"
+   },
+   "PCnext": 56,
+   "changes": {
+    "regs": {
+     "$t6": 7
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 1,
+    "$t5": 14,
+    "$t6": 7,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  }
+ ],
+ "diagram": {
+  "1": {
+   "1": "F",
+   "2": "D",
+   "3": "E",
+   "4": "M",
+   "5": "W"
+  },
+  "2": {
+   "2": "F",
+   "3": "D",
+   "4": "D",
+   "5": "E",
+   "6": "M",
+   "7": "W"
+  },
+  "3": {
+   "3": "F",
+   "4": "F",
+   "5": "D",
+   "6": "E",
+   "7": "M",
+   "8": "W"
+  },
+  "4": {
+   "5": "F",
+   "6": "D",
+   "7": "E",
+   "8": "M",
+   "9": "W"
+  },
+  "5": {
+   "6": "F",
+   "7": "D",
+   "8": "E",
+   "9": "M",
+   "10": "W"
+  },
+  "6": {
+   "7": "F",
+   "8": "D",
+   "9": "E",
+   "10": "M",
+   "11": "W"
+  },
+  "7": {
+   "8": "F",
+   "9": "D",
+   "10": "E",
+   "11": "M",
+   "12": "W"
+  },
+  "8": {
+   "9": "F"
+  },
+  "9": {
+   "10": "F",
+   "11": "D",
+   "12": "E",
+   "13": "M",
+   "14": "W"
+  },
+  "10": {
+   "11": "F",
+   "12": "D",
+   "13": "E",
+   "14": "M",
+   "15": "W"
+  }
+ },
+ "flushed": [
+  8
+ ],
+ "completed": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  9,
+  10
+ ],
+ "final": {
+  "regs": {
+   "$0": 0,
+   "$at": 0,
+   "$v0": 0,
+   "$v1": 0,
+   "$a0": 0,
+   "$a1": 0,
+   "$a2": 0,
+   "$a3": 0,
+   "$t0": 7,
+   "$t1": 12,
+   "$t2": 4,
+   "$t3": 4,
+   "$t4": 1,
+   "$t5": 14,
+   "$t6": 7,
+   "$t7": 0,
+   "$s0": 64,
+   "$s1": 5,
+   "$s2": 8,
+   "$s3": 6,
+   "$s4": 0,
+   "$s5": 0,
+   "$s6": 0,
+   "$s7": 0,
+   "$t8": 0,
+   "$t9": 0,
+   "$k0": 0,
+   "$k1": 0,
+   "$gp": 0,
+   "$sp": 0,
+   "$fp": 0,
+   "$ra": 0
+  },
+  "mem": {
+   "0x40": 7,
+   "0x44": 12,
+   "0x48": 0
+  },
+  "cycles": 15,
+  "instructions": 9,
+  "total_ps": 3000
+ }
+}
