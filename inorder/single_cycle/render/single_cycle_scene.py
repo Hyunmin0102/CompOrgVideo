@@ -418,7 +418,8 @@ class SingleCycle(StyleScene):
         lat, period = tm["latency"], tm["period"]
         ub = Rectangle(width=self.px(lat) - TL_X0, height=0.15, stroke_width=0).set_fill(YEL_STRONG, 1)
         ub.move_to([TL_X0, self.sum_y, 0], aligned_edge=LEFT)
-        l1 = txt(f"필요 {lat}ps", 10, INK, weight=BOLD).move_to([self.px(lat / 2), self.sum_y, 0]).set_z_index(5)
+        msg = f"필요 {lat}ps" if tm["waste"] > 0 else f"필요 {lat}ps · 낭비 0ps (가장 느린 명령어)"
+        l1 = txt(msg, 10, INK, weight=BOLD).move_to([self.px(lat / 2), self.sum_y, 0]).set_z_index(5)
         self.play(GrowFromEdge(ub, LEFT), run_time=self.rt(0.8))
         self.play(FadeIn(l1), run_time=self.rt(0.2))
         self.bars.add(ub, l1)
@@ -432,9 +433,6 @@ class SingleCycle(StyleScene):
             self.bars.add(wb, l2)
             lines.append(f"하지만 클록은 {period}ps — 남은 {tm['waste']}ps 동안 아무것도 하지 않는다(낭비).")
         else:
-            l2 = txt("낭비 0ps — 가장 느린 명령어", 10, RED).move_to([self.px(period) - 1.2, self.sum_y + 0.2, 0])
-            self.play(FadeIn(l2), run_time=self.rt(0.3))
-            self.bars.add(l2)
             lines.append(f"lw는 IF→ID→EX→MEM→WB 모두 써서 클록 {period}ps를 꽉 채운다.")
         self.say(lines, wait=1.8)
 
