@@ -30,6 +30,120 @@
    "분기 목표 덧셈기는 부호 확장된 즉치값이 준비된 뒤(200ps) 시작해 300ps에 끝난다고 계산함. 슬라이드 L10 95의 그림은 이 지점을 200ps로 표시하지만, beq 전체 350ps에는 영향 없음.",
    "단순화한 데이터패스에는 j(jump) 경로를 그리지 않음 (공통 프로그램에서 j를 쓰지 않음)."
   ],
+  "wire_ends": {
+   "pcnext": [
+    "PCMUX",
+    "PC"
+   ],
+   "pc_imem": [
+    "PC",
+    "IMEM"
+   ],
+   "pc_add4": [
+    "PC",
+    "ADD4"
+   ],
+   "four_add4": [
+    "CONST",
+    "ADD4"
+   ],
+   "pcplus4_pcmux": [
+    "ADD4",
+    "PCMUX"
+   ],
+   "pcplus4_addbr": [
+    "ADD4",
+    "ADDBR"
+   ],
+   "instr_ctrl": [
+    "IMEM",
+    "CTRL"
+   ],
+   "instr_a1": [
+    "IMEM",
+    "RF"
+   ],
+   "instr_a2": [
+    "IMEM",
+    "RF"
+   ],
+   "instr_rt_wr": [
+    "IMEM",
+    "REGDSTMUX"
+   ],
+   "instr_rd_wr": [
+    "IMEM",
+    "REGDSTMUX"
+   ],
+   "instr_imm": [
+    "IMEM",
+    "SIGNEXT"
+   ],
+   "writereg": [
+    "REGDSTMUX",
+    "RF_W"
+   ],
+   "rd1_srca": [
+    "RF",
+    "ALU"
+   ],
+   "rd2_alusrc": [
+    "RF",
+    "ALUSRCMUX"
+   ],
+   "rd2_wd": [
+    "RF",
+    "DMEM"
+   ],
+   "signimm_alusrc": [
+    "SIGNEXT",
+    "ALUSRCMUX"
+   ],
+   "signimm_sl2": [
+    "SIGNEXT",
+    "SL2"
+   ],
+   "srcb": [
+    "ALUSRCMUX",
+    "ALU"
+   ],
+   "sl2_addbr": [
+    "SL2",
+    "ADDBR"
+   ],
+   "aluresult_addr": [
+    "ALU",
+    "DMEM"
+   ],
+   "aluresult_res": [
+    "ALU",
+    "RESMUX"
+   ],
+   "readdata_res": [
+    "DMEM",
+    "RESMUX"
+   ],
+   "result_wd3": [
+    "RESMUX",
+    "RF_W"
+   ],
+   "zero_and": [
+    "ALU",
+    "AND"
+   ],
+   "branch_and": [
+    "CTRL",
+    "AND"
+   ],
+   "pcsrc": [
+    "AND",
+    "PCMUX"
+   ],
+   "pcbranch": [
+    "ADDBR",
+    "PCMUX"
+   ]
+  },
   "program": [
    {
     "addr": 0,
@@ -340,6 +454,120 @@
      ]
     }
    },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_ctrl",
+      "instr_imm",
+      "instr_rt_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "SIGNEXT",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "signimm_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "SIGNEXT",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "MEM",
+     "stage": "MEM",
+     "wires": [
+      "aluresult_addr"
+     ],
+     "comps": [
+      "ALU",
+      "DMEM"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "readdata_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "DMEM",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_imm": 0,
+    "instr_rt_wr": 0,
+    "rd1_srca": 0,
+    "signimm_alusrc": 0,
+    "srcb": 1,
+    "aluresult_addr": 0,
+    "writereg": 0,
+    "readdata_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
    "changes": {
     "regs": {
      "$t0": 7
@@ -579,6 +807,106 @@
       ]
      ]
     }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
    },
    "changes": {
     "regs": {
@@ -820,6 +1148,106 @@
      ]
     }
    },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
    "changes": {
     "regs": {
      "$t2": 4
@@ -1060,6 +1488,106 @@
      ]
     }
    },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
    "changes": {
     "regs": {
      "$t3": 4
@@ -1293,6 +1821,104 @@
       ]
      ]
     }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_imm"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "SIGNEXT"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "signimm_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "SIGNEXT",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "MEM",
+     "stage": "MEM",
+     "wires": [
+      "aluresult_addr",
+      "rd2_wd"
+     ],
+     "comps": [
+      "ALU",
+      "DMEM",
+      "RF"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_imm": 0,
+    "rd1_srca": 0,
+    "signimm_alusrc": 0,
+    "srcb": 1,
+    "aluresult_addr": 0,
+    "rd2_wd": 0,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
    },
    "changes": {
     "regs": {},
@@ -1533,6 +2159,106 @@
       ]
      ]
     }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
    },
    "changes": {
     "regs": {
@@ -1790,6 +2516,107 @@
      ]
     }
    },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_imm"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "SIGNEXT"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "pcplus4_addbr",
+      "rd1_srca",
+      "rd2_alusrc",
+      "signimm_sl2",
+      "sl2_addbr",
+      "srcb"
+     ],
+     "comps": [
+      "ADD4",
+      "ADDBR",
+      "RF",
+      "ALU",
+      "ALUSRCMUX",
+      "SIGNEXT",
+      "SL2"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "branch_and",
+      "pcbranch",
+      "zero_and",
+      "pcsrc",
+      "pcnext"
+     ],
+     "comps": [
+      "CTRL",
+      "AND",
+      "ADDBR",
+      "PCMUX",
+      "ALU",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_imm": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "signimm_sl2": 0,
+    "sl2_addbr": 1,
+    "pcplus4_addbr": 0,
+    "zero_and": 0,
+    "branch_and": 0,
+    "pcsrc": 1,
+    "pcbranch": 0,
+    "pcnext": 2
+   },
    "changes": {
     "regs": {},
     "mem": {}
@@ -2035,6 +2862,108 @@
      ]
     }
    },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_ctrl",
+      "instr_imm",
+      "instr_rt_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "SIGNEXT",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "signimm_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "SIGNEXT",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_imm": 0,
+    "instr_rt_wr": 0,
+    "rd1_srca": 0,
+    "signimm_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
    "changes": {
     "regs": {
      "$t5": 14
@@ -2274,6 +3203,106 @@
       ]
      ]
     }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
    },
    "changes": {
     "regs": {

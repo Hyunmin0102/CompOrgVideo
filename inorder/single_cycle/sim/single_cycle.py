@@ -167,6 +167,58 @@ def arrival(k, ev, latency):
     return w, c
 
 
+# wire -> (source part, destination part).  RF_W = register-file write port.
+WIRE_ENDS = {
+    "pcnext": ("PCMUX", "PC"), "pc_imem": ("PC", "IMEM"), "pc_add4": ("PC", "ADD4"),
+    "four_add4": ("CONST", "ADD4"), "pcplus4_pcmux": ("ADD4", "PCMUX"), "pcplus4_addbr": ("ADD4", "ADDBR"),
+    "instr_ctrl": ("IMEM", "CTRL"), "instr_a1": ("IMEM", "RF"), "instr_a2": ("IMEM", "RF"),
+    "instr_rt_wr": ("IMEM", "REGDSTMUX"), "instr_rd_wr": ("IMEM", "REGDSTMUX"),
+    "instr_imm": ("IMEM", "SIGNEXT"), "writereg": ("REGDSTMUX", "RF_W"), "rd1_srca": ("RF", "ALU"),
+    "rd2_alusrc": ("RF", "ALUSRCMUX"), "rd2_wd": ("RF", "DMEM"), "signimm_alusrc": ("SIGNEXT", "ALUSRCMUX"),
+    "signimm_sl2": ("SIGNEXT", "SL2"), "srcb": ("ALUSRCMUX", "ALU"), "sl2_addbr": ("SL2", "ADDBR"),
+    "aluresult_addr": ("ALU", "DMEM"), "aluresult_res": ("ALU", "RESMUX"), "readdata_res": ("DMEM", "RESMUX"),
+    "result_wd3": ("RESMUX", "RF_W"), "zero_and": ("ALU", "AND"), "branch_and": ("CTRL", "AND"),
+    "pcsrc": ("AND", "PCMUX"), "pcbranch": ("ADDBR", "PCMUX")}
+
+# The single cycle shown as a sequence of jobs (one thing at a time).  Order = order on screen;
+# the stage tag is the L10 88 processing step.  Wires an instruction does not use are dropped.
+JOBS = [("IF_FETCH", "IF", ["pc_imem"]),
+        ("IF_PC4", "IF", ["pc_add4", "four_add4"]),
+        ("ID", "ID", ["instr_ctrl", "instr_a1", "instr_a2", "instr_imm", "instr_rt_wr", "instr_rd_wr"]),
+        ("EX", "EX", ["rd1_srca", "rd2_alusrc", "signimm_alusrc", "srcb", "signimm_sl2", "sl2_addbr",
+                      "pcplus4_addbr"]),
+        ("MEM", "MEM", ["aluresult_addr", "rd2_wd"]),
+        ("WB", "WB", ["writereg", "aluresult_res", "readdata_res", "result_wd3"]),
+        ("NEXT_PC", None, ["zero_and", "branch_and", "pcsrc", "pcplus4_pcmux", "pcbranch", "pcnext"])]
+
+
+def jobs_of(wires):
+    """Jobs with the wires this instruction uses; hop = causal order inside a job
+    (0 = its source was produced in an earlier job, n = n parts later)."""
+    out, hop = [], {}
+    for name, stage, ws in JOBS:
+        js = [w for w in ws if w in wires]
+        if not js:
+            continue
+        dests = {WIRE_ENDS[w][1] for w in js}
+
+        def h(w, js=js, dests=dests):
+            src = WIRE_ENDS[w][0]
+            if src not in dests:
+                return 0
+            return 1 + max(h(x) for x in js if WIRE_ENDS[x][1] == src)
+        for w in js:
+            hop[w] = h(w)
+        js.sort(key=lambda w: (hop[w], w))
+        comps = []
+        for w in js:
+            for c in WIRE_ENDS[w]:
+                if c not in comps and c != "CONST":
+                    comps.append(c)
+        out.append({"name": name, "stage": stage, "wires": js, "comps": comps})
+    return out, hop
+
+
 def main():
     prog = assemble(PROGRAM, BASE_PC)
     imem = {p["addr"]: p for p in prog}
@@ -206,6 +258,9 @@ def main():
         comps, wires = active_parts(k, bool(pcsrc))
         ev, lat = timing(k)
         wt, ct = arrival(k, ev, lat)
+        jobs, hops = jobs_of(set(wires))
+        if sorted(w for j in jobs for w in j["wires"]) != sorted(wires):
+            raise RuntimeError("every used wire must belong to exactly one job")
         wt = {n: wt[n] for n in wires}
         ct = {n: ct[n] for n in comps}
         steps.append({
@@ -224,6 +279,7 @@ def main():
             "active": {"components": comps, "wires": wires},
             "timing": {"events": ev, "latency": lat, "period": period, "waste": period - lat,
                        "wire_ps": wt, "comp_ps": ct},
+            "jobs": jobs, "wire_hop": hops,
             "changes": changes,
             "regs_after": {n: s32(regs[i]) for i, n in enumerate(map(reg_name, range(32)))},
             "mem_after": {f"0x{a:02X}": s32(v) for a, v in sorted(mem.items())},
@@ -236,6 +292,7 @@ def main():
             "delays_ps": DELAYS, "delays_source": "L10 slide 90 (PDF p.15)",
             "period_ps": period, "latency_by_class": lat_by_class,
             "alu_control_encoding": ALUCTL, "assumptions": ASSUMPTIONS,
+            "wire_ends": {w: list(v) for w, v in WIRE_ENDS.items()},
             "program": [{"addr": p["addr"], "word": f"{p['word']:08X}", "text": p["text"],
                          "reason": r} for p, r in zip(prog, REASONS)],
             "init_regs": INIT_REGS, "init_mem": {f"0x{a:02X}": v for a, v in INIT_MEM.items()},
