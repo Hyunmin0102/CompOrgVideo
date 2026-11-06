@@ -23,15 +23,17 @@ python3 inorder/single_cycle/verify/verify_single.py  # -> out/verify_report.md 
 manim --dry_run inorder/single_cycle/render/single_cycle_scene.py SingleCycle          # 대조만
 SC_STEPS=2 manim -ql --media_dir /tmp/media inorder/single_cycle/render/single_cycle_scene.py SingleCycle   # 처음 N개 미리보기
 manim --resolution 1920,1080 --frame_rate 30 --media_dir /tmp/media \
-      inorder/single_cycle/render/single_cycle_scene.py SingleCycle                    # 완성본 (약 6분 12초)
+      inorder/single_cycle/render/single_cycle_scene.py SingleCycle                    # 완성본 (약 7분 40초)
 ```
 mp4는 저장소에 올리지 않는다(.gitignore).
 
-## 연출
-- 명령어 하나 = 클록 1개. 사용하는 부품·배선만 칠하고 나머지는 회색.
-- 0→600ps 커서가 경로를 따라 신호 도착 시각을 보여준다. 각 단계(IF/ID/EX/MEM/WB) 시작 전에 멈추고
-  그 단계의 연산을 자막으로 예고한 뒤 진행. 클록 에지 직전에도 예고 후 상태 갱신(바뀐 값은 파란색).
-- 명령어가 끝난 시각 이후 600ps까지는 빨간 "낭비" 막대. 마지막 장면: 9 × 1 × 600ps = 5400ps (필요 3900ps, 낭비 1500ps).
+## 연출 (2편과 같은 방식)
+- 명령어 하나 = 클록 1개. 사이클 안을 일(trace `jobs`) 단위로 하나씩 보여준다:
+  IF ① 명령어 읽기 → IF ② PC+4 → ID → EX → MEM → WB → 다음 PC 선택.
+  배선은 인과 순서(`wire_hop`)대로 한 칸씩 켜고, 지연 부품이 일하는 동안 ps 막대(시작→끝)가 자란다.
+- 사이클 사이에 그림을 초기화하지 않고 바뀌는 부품·제어 신호만 움직인다(X는 옅은 회색).
+- 일이 끝난 시각 이후 600ps까지는 빨간 "낭비" 막대. 클록 에지에서 레지스터·메모리·PC 값을 하나씩 칸으로 옮긴다.
+- 마지막 장면: 9 × 1 × 600ps = 5400ps (필요 3900ps, 낭비 1500ps). 완성본 약 7분 40초.
 
 ## 가정 (`config.assumptions`, 영상에는 "※ 강의 범위 밖 가정")
 1. ALUControl 3비트 값은 H&H 7장 인코딩(add 010, sub 110, and 000, or 001, slt 111).
