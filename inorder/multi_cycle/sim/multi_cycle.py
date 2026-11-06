@@ -141,7 +141,7 @@ def arrival(wires):
         if d not in SOURCES:
             t_end(d)
     c_ps = {k: [list(v)] for k, v in end.items()}
-    for k in SOURCES - {"CONST"}:
+    for k in sorted(SOURCES - {"CONST"}):
         ins = [w_ps[w] for w in wires if WIRE_ENDS[w][1] == k]
         iv = [[0, 0]] if any(WIRE_ENDS[w][0] == k for w in wires) or not ins else []
         if ins:                             # a register lights up again when its new input arrives
