@@ -10,6 +10,22 @@ python3 inorder/multi_cycle/sim/multi_cycle.py      # -> out/trace.json
 python3 inorder/multi_cycle/verify/verify_multi.py  # -> out/verify_report.md (불일치 시 exit 1)
 ```
 
+## 렌더링
+```bash
+manim --dry_run inorder/multi_cycle/render/multi_cycle_scene.py MultiCycle            # 화면 ↔ trace 대조만
+MC_STEPS=9 manim -ql --media_dir /tmp/media inorder/multi_cycle/render/multi_cycle_scene.py MultiCycle   # 처음 N사이클
+manim --resolution 1920,1080 --frame_rate 30 --media_dir /tmp/media \
+      inorder/multi_cycle/render/multi_cycle_scene.py MultiCycle                      # 완성본 (약 17분)
+```
+렌더러는 multi-cycle trace만 읽고, 마지막 비교 장면에서만 1편 trace의 총 시간을 읽는다. mp4는 올리지 않는다.
+
+## 연출
+- 한 상태의 일을 "저장 목적"(trace `jobs`)별로 하나씩 보여주고, 배선은 인과 순서(`wire_hop`)대로 한 칸씩 켠다.
+  지연 부품(메모리·ALU·레지스터 파일)이 일하는 동안 ps 막대가 자란다.
+- 사이클 사이에 그림을 초기화하지 않고 바뀌는 부품·제어 신호만 움직인다. FSM 동그라미에 적힌 신호만 진하게 표시.
+- 클록 에지에서 의미 있는 저장(trace `intended`)을 하나씩 레지스터 칸으로 옮기고, 덮어쓰이기만 하는 값은 회색.
+- 마지막 장면: 명령어별 200ps 칸 + 1편 600ps 비교, 36 × 200ps = 7200ps vs 9 × 600ps = 5400ps.
+
 ## 구성
 - `sim/multi_cycle.py` — 레지스터 수준 사이클 시뮬레이터. FSM(S0–S10)이 제어 신호를 내고,
   매 사이클 조합 값(Adr, SrcA/B, ALUResult, PC' …)과 클록 에지의 PC·IR·Data·A·B·ALUOut·레지스터·메모리 변화를 기록
