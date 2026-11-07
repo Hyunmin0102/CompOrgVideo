@@ -8,6 +8,7 @@ Colour rules (slide conventions, keep identical across videos):
   YEL     current cycle / current instruction highlight
   BLUE    value that just changed (reset to INK at the start of the next cycle)
   ORANGE  connection arrows / data movement
+  INSTR_COLORS  one colour per instruction in pipelined views (teal, purple, pink, green, brown)
 Subtitles: Korean, key terms with English in parentheses -> term("예약 스테이션", "reservation station").
 Assumptions not on the slides are shown with the ASSUME prefix.
 
@@ -37,6 +38,11 @@ YEL_STRONG = "#F2C200"
 GREY = "#ECECEC"
 RED = "#C62828"
 FAINT = "#9E9E9E"
+
+# Per-instruction colours for pipelined views (several instructions on screen at once).
+# Chosen to stay distinct from YEL (current cycle), BLUE (just changed), ORANGE (wires), RED.
+# Instruction k uses INSTR_COLORS[k % len(INSTR_COLORS)].
+INSTR_COLORS = ["#1B9E77", "#7B52AE", "#D45087", "#5D8A2E", "#8C564B"]
 
 # ------------------------------------------------------------ conventions ---
 PREDICT_SECONDS = 2.0     # pause before every cycle for prediction

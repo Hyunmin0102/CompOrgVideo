@@ -18,6 +18,10 @@ python3 inorder/pipeline/verify/verify_pipeline.py      # -> out/verify_report.m
 - `verify/verify_pipeline.py` — 인터프리터 대조, 설계한 hazard 위치, 슬라이드 20(같은 제어 유닛) 대조,
   사이클 수 식, 1·2편과 실행 시간 비교
 
+- 데이터패스 그림: `inorder/shared/datapath.py`의 `Datapath(variant="pipe")` — 슬라이드 79(Fig. 7.58)를
+  200dpi 이미지에서 픽셀 좌표로 옮긴 배치. 화면 왼쪽 2/3에 두고, 오른쪽은 파이프라인 다이어그램·레지스터 표.
+  `PL_WIRE_STAGE`로 배선마다 단계를 정해, 그 단계에 있는 명령어의 색(`common/style.py`의 `INSTR_COLORS`)으로 칠한다.
+
 ## 결과
 15 사이클 × 200ps = 3000ps (single 5400ps, multi 7200ps).
 I1→I2 lw stall 1, I1→I2·I2→I4 WB→EX, I2→I3 MEM→EX, I2→I5·I4→I7 레지스터 파일 반 사이클, I7 taken → I8 flush.
