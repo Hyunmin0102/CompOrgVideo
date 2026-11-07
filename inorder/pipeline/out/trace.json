@@ -204,6 +204,56 @@
     "0x40": 7,
     "0x44": 0,
     "0x48": 0
+   },
+   "stages": {
+    "IF": {
+     "id": 1,
+     "class": "LW",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid",
+      "pcplus4f_pcmux",
+      "pcnext"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcnext": 2,
+      "pcplus4f_ifid": 1,
+      "pcplus4f_pcmux": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID",
+      "PCMUX"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "IF": "LW"
    }
   },
   {
@@ -307,6 +357,103 @@
     "0x40": 7,
     "0x44": 0,
     "0x48": 0
+   },
+   "stages": {
+    "ID": {
+     "id": 1,
+     "class": "LW",
+     "wires": [
+      "instrd_a1",
+      "instrd_ctrl",
+      "instrd_imm",
+      "instrd_rs",
+      "instrd_rt",
+      "c_aluctl_d",
+      "c_alusrc_d",
+      "c_memtoreg_d",
+      "c_regwrite_d",
+      "rd1_idex",
+      "signimm_idex"
+     ],
+     "hop": {
+      "instrd_rt": 0,
+      "signimm_idex": 1,
+      "c_regwrite_d": 1,
+      "c_alusrc_d": 1,
+      "c_memtoreg_d": 1,
+      "instrd_ctrl": 0,
+      "c_aluctl_d": 1,
+      "rd1_idex": 1,
+      "instrd_imm": 0,
+      "instrd_rs": 0,
+      "instrd_a1": 0
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX",
+      "SIGNEXT"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 150
+    },
+    "IF": {
+     "id": 2,
+     "class": "R",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid",
+      "pcplus4f_pcmux",
+      "pcnext"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcnext": 2,
+      "pcplus4f_ifid": 1,
+      "pcplus4f_pcmux": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID",
+      "PCMUX"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "ID": "LW",
+    "IF": "R"
    }
   },
   {
@@ -425,6 +572,149 @@
     "0x40": 7,
     "0x44": 0,
     "0x48": 0
+   },
+   "stages": {
+    "EX": {
+     "id": 1,
+     "class": "LW",
+     "wires": [
+      "c_aluctl_e",
+      "c_alusrc_e",
+      "c_memtoreg_e",
+      "c_regwrite_e",
+      "rd1e_fae",
+      "rte_rdst",
+      "signimme_alusrc",
+      "fae_srca",
+      "writerege",
+      "srcb",
+      "alu_exmem"
+     ],
+     "hop": {
+      "rte_rdst": 0,
+      "signimme_alusrc": 0,
+      "alu_exmem": 3,
+      "c_aluctl_e": 0,
+      "c_regwrite_e": 0,
+      "rd1e_fae": 0,
+      "writerege": 1,
+      "c_memtoreg_e": 0,
+      "c_alusrc_e": 0,
+      "fae_srca": 1,
+      "srcb": 2
+     },
+     "comps": [
+      "IDEX",
+      "FAEMUX",
+      "ALU",
+      "EXMEM",
+      "ALUSRCMUX",
+      "REGDSTMUX"
+     ],
+     "timed": [
+      {
+       "comp": "ALU",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 100
+    },
+    "ID": {
+     "id": 2,
+     "class": "R",
+     "wires": [
+      "instrd_a1",
+      "instrd_a2",
+      "instrd_ctrl",
+      "instrd_rd",
+      "instrd_rs",
+      "instrd_rt",
+      "c_aluctl_d",
+      "c_regdst_d",
+      "c_regwrite_d",
+      "rd1_idex",
+      "rd2_idex"
+     ],
+     "hop": {
+      "instrd_rd": 0,
+      "rd2_idex": 1,
+      "instrd_rt": 0,
+      "c_regwrite_d": 1,
+      "instrd_ctrl": 0,
+      "instrd_a2": 0,
+      "c_aluctl_d": 1,
+      "rd1_idex": 1,
+      "instrd_rs": 0,
+      "c_regdst_d": 1,
+      "instrd_a1": 0
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 150
+    },
+    "IF": {
+     "id": 3,
+     "class": "R",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcplus4f_ifid": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [
+    "h_stallf",
+    "h_stalld",
+    "h_flushe"
+   ],
+   "classes": {
+    "EX": "LW",
+    "ID": "R",
+    "IF": "R"
    }
   },
   {
@@ -534,6 +824,139 @@
     "0x40": 7,
     "0x44": 0,
     "0x48": 0
+   },
+   "stages": {
+    "MEM": {
+     "id": 1,
+     "class": "LW",
+     "wires": [
+      "aluoutm_dmem",
+      "c_memtoreg_m",
+      "c_regwrite_m",
+      "writeregm_memwb",
+      "dmem_memwb"
+     ],
+     "hop": {
+      "aluoutm_dmem": 0,
+      "c_memtoreg_m": 0,
+      "writeregm_memwb": 0,
+      "dmem_memwb": 1,
+      "c_regwrite_m": 0
+     },
+     "comps": [
+      "EXMEM",
+      "MEMWB",
+      "DMEM"
+     ],
+     "timed": [
+      {
+       "comp": "DMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    },
+    "ID": {
+     "id": 2,
+     "class": "R",
+     "wires": [
+      "fwd_m_fad",
+      "h_fwdad",
+      "instrd_a1",
+      "instrd_a2",
+      "instrd_ctrl",
+      "instrd_rd",
+      "instrd_rs",
+      "instrd_rt",
+      "c_aluctl_d",
+      "c_regdst_d",
+      "c_regwrite_d",
+      "rd1_idex",
+      "rd2_idex"
+     ],
+     "hop": {
+      "instrd_rd": 0,
+      "rd2_idex": 1,
+      "instrd_rt": 0,
+      "c_regwrite_d": 1,
+      "instrd_ctrl": 0,
+      "instrd_a2": 0,
+      "h_fwdad": 0,
+      "c_aluctl_d": 1,
+      "rd1_idex": 1,
+      "fwd_m_fad": 0,
+      "instrd_rs": 0,
+      "c_regdst_d": 1,
+      "instrd_a1": 0
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 150
+    },
+    "IF": {
+     "id": 3,
+     "class": "R",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid",
+      "pcplus4f_pcmux",
+      "pcnext"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcnext": 2,
+      "pcplus4f_ifid": 1,
+      "pcplus4f_pcmux": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID",
+      "PCMUX"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "MEM": "LW",
+    "ID": "R",
+    "IF": "R"
    }
   },
   {
@@ -660,6 +1083,186 @@
     "0x40": 7,
     "0x44": 0,
     "0x48": 0
+   },
+   "stages": {
+    "WB": {
+     "id": 1,
+     "class": "LW",
+     "wires": [
+      "c_memtoreg_w",
+      "c_regwrite_w",
+      "readdataw_mux",
+      "writeregw_a3",
+      "resultw_wd3"
+     ],
+     "hop": {
+      "c_memtoreg_w": 0,
+      "readdataw_mux": 0,
+      "resultw_wd3": 1,
+      "writeregw_a3": 0,
+      "c_regwrite_w": 0
+     },
+     "comps": [
+      "MEMWB",
+      "RESMUX",
+      "RF"
+     ],
+     "timed": [
+      {
+       "comp": "RF_W",
+       "start": 0,
+       "end": 50,
+       "after_hop": 1
+      }
+     ],
+     "used_ps": 50
+    },
+    "EX": {
+     "id": 2,
+     "class": "R",
+     "wires": [
+      "c_aluctl_e",
+      "c_regdst_e",
+      "c_regwrite_e",
+      "fwd_w_fae",
+      "h_fwdae",
+      "rd2e_fbe",
+      "rde_rdst",
+      "fae_srca",
+      "fbe_alusrc",
+      "writerege",
+      "srcb",
+      "alu_exmem"
+     ],
+     "hop": {
+      "alu_exmem": 3,
+      "c_regdst_e": 0,
+      "fwd_w_fae": 0,
+      "rde_rdst": 0,
+      "c_aluctl_e": 0,
+      "c_regwrite_e": 0,
+      "fbe_alusrc": 1,
+      "writerege": 1,
+      "rd2e_fbe": 0,
+      "fae_srca": 1,
+      "srcb": 2,
+      "h_fwdae": 0
+     },
+     "comps": [
+      "IDEX",
+      "FAEMUX",
+      "ALU",
+      "EXMEM",
+      "ALUSRCMUX",
+      "FBEMUX",
+      "REGDSTMUX"
+     ],
+     "timed": [
+      {
+       "comp": "ALU",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 100
+    },
+    "ID": {
+     "id": 3,
+     "class": "R",
+     "wires": [
+      "instrd_a1",
+      "instrd_a2",
+      "instrd_ctrl",
+      "instrd_rd",
+      "instrd_rs",
+      "instrd_rt",
+      "c_aluctl_d",
+      "c_regdst_d",
+      "c_regwrite_d",
+      "rd1_idex",
+      "rd2_idex"
+     ],
+     "hop": {
+      "instrd_rd": 0,
+      "rd2_idex": 1,
+      "instrd_rt": 0,
+      "c_regwrite_d": 1,
+      "instrd_ctrl": 0,
+      "instrd_a2": 0,
+      "c_aluctl_d": 1,
+      "rd1_idex": 1,
+      "instrd_rs": 0,
+      "c_regdst_d": 1,
+      "instrd_a1": 0
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 150
+    },
+    "IF": {
+     "id": 4,
+     "class": "R",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid",
+      "pcplus4f_pcmux",
+      "pcnext"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcnext": 2,
+      "pcplus4f_ifid": 1,
+      "pcplus4f_pcmux": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID",
+      "PCMUX"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "WB": "LW",
+    "EX": "R",
+    "ID": "R",
+    "IF": "R"
    }
   },
   {
@@ -786,6 +1389,178 @@
     "0x40": 7,
     "0x44": 0,
     "0x48": 0
+   },
+   "stages": {
+    "MEM": {
+     "id": 2,
+     "class": "R",
+     "wires": [
+      "aluoutm_memwb",
+      "c_regwrite_m",
+      "writeregm_memwb"
+     ],
+     "hop": {
+      "aluoutm_memwb": 0,
+      "writeregm_memwb": 0,
+      "c_regwrite_m": 0
+     },
+     "comps": [
+      "EXMEM",
+      "MEMWB"
+     ],
+     "timed": [],
+     "used_ps": 0
+    },
+    "EX": {
+     "id": 3,
+     "class": "R",
+     "wires": [
+      "c_aluctl_e",
+      "c_regdst_e",
+      "c_regwrite_e",
+      "fwd_m_fae",
+      "h_fwdae",
+      "rd2e_fbe",
+      "rde_rdst",
+      "fae_srca",
+      "fbe_alusrc",
+      "writerege",
+      "srcb",
+      "alu_exmem"
+     ],
+     "hop": {
+      "alu_exmem": 3,
+      "c_regdst_e": 0,
+      "rde_rdst": 0,
+      "c_aluctl_e": 0,
+      "c_regwrite_e": 0,
+      "fbe_alusrc": 1,
+      "writerege": 1,
+      "rd2e_fbe": 0,
+      "fwd_m_fae": 0,
+      "fae_srca": 1,
+      "srcb": 2,
+      "h_fwdae": 0
+     },
+     "comps": [
+      "IDEX",
+      "FAEMUX",
+      "ALU",
+      "EXMEM",
+      "ALUSRCMUX",
+      "FBEMUX",
+      "REGDSTMUX"
+     ],
+     "timed": [
+      {
+       "comp": "ALU",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 100
+    },
+    "ID": {
+     "id": 4,
+     "class": "R",
+     "wires": [
+      "fwd_m_fad",
+      "h_fwdad",
+      "instrd_a1",
+      "instrd_a2",
+      "instrd_ctrl",
+      "instrd_rd",
+      "instrd_rs",
+      "instrd_rt",
+      "c_aluctl_d",
+      "c_regdst_d",
+      "c_regwrite_d",
+      "rd1_idex",
+      "rd2_idex"
+     ],
+     "hop": {
+      "instrd_rd": 0,
+      "rd2_idex": 1,
+      "instrd_rt": 0,
+      "c_regwrite_d": 1,
+      "instrd_ctrl": 0,
+      "instrd_a2": 0,
+      "h_fwdad": 0,
+      "c_aluctl_d": 1,
+      "rd1_idex": 1,
+      "fwd_m_fad": 0,
+      "instrd_rs": 0,
+      "c_regdst_d": 1,
+      "instrd_a1": 0
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 150
+    },
+    "IF": {
+     "id": 5,
+     "class": "SW",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid",
+      "pcplus4f_pcmux",
+      "pcnext"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcnext": 2,
+      "pcplus4f_ifid": 1,
+      "pcplus4f_pcmux": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID",
+      "PCMUX"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "MEM": "R",
+    "EX": "R",
+    "ID": "R",
+    "IF": "SW"
    }
   },
   {
@@ -925,6 +1700,208 @@
     "0x40": 7,
     "0x44": 0,
     "0x48": 0
+   },
+   "stages": {
+    "WB": {
+     "id": 2,
+     "class": "R",
+     "wires": [
+      "aluoutw_mux",
+      "c_regwrite_w",
+      "writeregw_a3",
+      "resultw_wd3"
+     ],
+     "hop": {
+      "writeregw_a3": 0,
+      "aluoutw_mux": 0,
+      "resultw_wd3": 1,
+      "c_regwrite_w": 0
+     },
+     "comps": [
+      "MEMWB",
+      "RESMUX",
+      "RF"
+     ],
+     "timed": [
+      {
+       "comp": "RF_W",
+       "start": 0,
+       "end": 50,
+       "after_hop": 1
+      }
+     ],
+     "used_ps": 50
+    },
+    "MEM": {
+     "id": 3,
+     "class": "R",
+     "wires": [
+      "aluoutm_memwb",
+      "c_regwrite_m",
+      "writeregm_memwb"
+     ],
+     "hop": {
+      "aluoutm_memwb": 0,
+      "writeregm_memwb": 0,
+      "c_regwrite_m": 0
+     },
+     "comps": [
+      "EXMEM",
+      "MEMWB"
+     ],
+     "timed": [],
+     "used_ps": 0
+    },
+    "EX": {
+     "id": 4,
+     "class": "R",
+     "wires": [
+      "c_aluctl_e",
+      "c_regdst_e",
+      "c_regwrite_e",
+      "fwd_w_fae",
+      "h_fwdae",
+      "rd2e_fbe",
+      "rde_rdst",
+      "fae_srca",
+      "fbe_alusrc",
+      "writerege",
+      "srcb",
+      "alu_exmem"
+     ],
+     "hop": {
+      "alu_exmem": 3,
+      "c_regdst_e": 0,
+      "fwd_w_fae": 0,
+      "rde_rdst": 0,
+      "c_aluctl_e": 0,
+      "c_regwrite_e": 0,
+      "fbe_alusrc": 1,
+      "writerege": 1,
+      "rd2e_fbe": 0,
+      "fae_srca": 1,
+      "srcb": 2,
+      "h_fwdae": 0
+     },
+     "comps": [
+      "IDEX",
+      "FAEMUX",
+      "ALU",
+      "EXMEM",
+      "ALUSRCMUX",
+      "FBEMUX",
+      "REGDSTMUX"
+     ],
+     "timed": [
+      {
+       "comp": "ALU",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 100
+    },
+    "ID": {
+     "id": 5,
+     "class": "SW",
+     "wires": [
+      "instrd_a1",
+      "instrd_a2",
+      "instrd_ctrl",
+      "instrd_imm",
+      "instrd_rs",
+      "instrd_rt",
+      "c_aluctl_d",
+      "c_alusrc_d",
+      "c_memwrite_d",
+      "rd1_idex",
+      "rd2_idex",
+      "signimm_idex"
+     ],
+     "hop": {
+      "rd2_idex": 1,
+      "instrd_rt": 0,
+      "signimm_idex": 1,
+      "c_alusrc_d": 1,
+      "instrd_ctrl": 0,
+      "instrd_a2": 0,
+      "c_aluctl_d": 1,
+      "rd1_idex": 1,
+      "instrd_imm": 0,
+      "c_memwrite_d": 1,
+      "instrd_rs": 0,
+      "instrd_a1": 0
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX",
+      "SIGNEXT"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 150
+    },
+    "IF": {
+     "id": 6,
+     "class": "R",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid",
+      "pcplus4f_pcmux",
+      "pcnext"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcnext": 2,
+      "pcplus4f_ifid": 1,
+      "pcplus4f_pcmux": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID",
+      "PCMUX"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "WB": "R",
+    "MEM": "R",
+    "EX": "R",
+    "ID": "SW",
+    "IF": "R"
    }
   },
   {
@@ -1048,6 +2025,200 @@
     "0x40": 7,
     "0x44": 0,
     "0x48": 0
+   },
+   "stages": {
+    "WB": {
+     "id": 3,
+     "class": "R",
+     "wires": [
+      "aluoutw_mux",
+      "c_regwrite_w",
+      "writeregw_a3",
+      "resultw_wd3"
+     ],
+     "hop": {
+      "writeregw_a3": 0,
+      "aluoutw_mux": 0,
+      "resultw_wd3": 1,
+      "c_regwrite_w": 0
+     },
+     "comps": [
+      "MEMWB",
+      "RESMUX",
+      "RF"
+     ],
+     "timed": [
+      {
+       "comp": "RF_W",
+       "start": 0,
+       "end": 50,
+       "after_hop": 1
+      }
+     ],
+     "used_ps": 50
+    },
+    "MEM": {
+     "id": 4,
+     "class": "R",
+     "wires": [
+      "aluoutm_memwb",
+      "c_regwrite_m",
+      "writeregm_memwb"
+     ],
+     "hop": {
+      "aluoutm_memwb": 0,
+      "writeregm_memwb": 0,
+      "c_regwrite_m": 0
+     },
+     "comps": [
+      "EXMEM",
+      "MEMWB"
+     ],
+     "timed": [],
+     "used_ps": 0
+    },
+    "EX": {
+     "id": 5,
+     "class": "SW",
+     "wires": [
+      "c_aluctl_e",
+      "c_alusrc_e",
+      "c_memwrite_e",
+      "rd1e_fae",
+      "rd2e_fbe",
+      "signimme_alusrc",
+      "fae_srca",
+      "writedatae",
+      "srcb",
+      "alu_exmem"
+     ],
+     "hop": {
+      "signimme_alusrc": 0,
+      "alu_exmem": 3,
+      "c_aluctl_e": 0,
+      "rd1e_fae": 0,
+      "c_memwrite_e": 0,
+      "rd2e_fbe": 0,
+      "c_alusrc_e": 0,
+      "writedatae": 1,
+      "fae_srca": 1,
+      "srcb": 2
+     },
+     "comps": [
+      "IDEX",
+      "FAEMUX",
+      "ALU",
+      "EXMEM",
+      "ALUSRCMUX",
+      "FBEMUX"
+     ],
+     "timed": [
+      {
+       "comp": "ALU",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 100
+    },
+    "ID": {
+     "id": 6,
+     "class": "R",
+     "wires": [
+      "instrd_a1",
+      "instrd_a2",
+      "instrd_ctrl",
+      "instrd_rd",
+      "instrd_rs",
+      "instrd_rt",
+      "c_aluctl_d",
+      "c_regdst_d",
+      "c_regwrite_d",
+      "rd1_idex",
+      "rd2_idex"
+     ],
+     "hop": {
+      "instrd_rd": 0,
+      "rd2_idex": 1,
+      "instrd_rt": 0,
+      "c_regwrite_d": 1,
+      "instrd_ctrl": 0,
+      "instrd_a2": 0,
+      "c_aluctl_d": 1,
+      "rd1_idex": 1,
+      "instrd_rs": 0,
+      "c_regdst_d": 1,
+      "instrd_a1": 0
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 150
+    },
+    "IF": {
+     "id": 7,
+     "class": "BEQ",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid",
+      "pcplus4f_pcmux",
+      "pcnext"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcnext": 2,
+      "pcplus4f_ifid": 1,
+      "pcplus4f_pcmux": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID",
+      "PCMUX"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "WB": "R",
+    "MEM": "R",
+    "EX": "SW",
+    "ID": "R",
+    "IF": "BEQ"
    }
   },
   {
@@ -1187,6 +2358,241 @@
     "0x40": 7,
     "0x44": 12,
     "0x48": 0
+   },
+   "stages": {
+    "WB": {
+     "id": 4,
+     "class": "R",
+     "wires": [
+      "aluoutw_mux",
+      "c_regwrite_w",
+      "writeregw_a3",
+      "resultw_wd3"
+     ],
+     "hop": {
+      "writeregw_a3": 0,
+      "aluoutw_mux": 0,
+      "resultw_wd3": 1,
+      "c_regwrite_w": 0
+     },
+     "comps": [
+      "MEMWB",
+      "RESMUX",
+      "RF"
+     ],
+     "timed": [
+      {
+       "comp": "RF_W",
+       "start": 0,
+       "end": 50,
+       "after_hop": 1
+      }
+     ],
+     "used_ps": 50
+    },
+    "MEM": {
+     "id": 5,
+     "class": "SW",
+     "wires": [
+      "aluoutm_dmem",
+      "c_memwrite_m",
+      "writedatam_dmem"
+     ],
+     "hop": {
+      "writedatam_dmem": 0,
+      "c_memwrite_m": 0,
+      "aluoutm_dmem": 0
+     },
+     "comps": [
+      "EXMEM",
+      "MEMWB",
+      "DMEM"
+     ],
+     "timed": [
+      {
+       "comp": "DMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    },
+    "EX": {
+     "id": 6,
+     "class": "R",
+     "wires": [
+      "c_aluctl_e",
+      "c_regdst_e",
+      "c_regwrite_e",
+      "rd1e_fae",
+      "rd2e_fbe",
+      "rde_rdst",
+      "fae_srca",
+      "fbe_alusrc",
+      "writerege",
+      "srcb",
+      "alu_exmem"
+     ],
+     "hop": {
+      "alu_exmem": 3,
+      "c_regdst_e": 0,
+      "rde_rdst": 0,
+      "c_aluctl_e": 0,
+      "c_regwrite_e": 0,
+      "fbe_alusrc": 1,
+      "rd1e_fae": 0,
+      "writerege": 1,
+      "rd2e_fbe": 0,
+      "fae_srca": 1,
+      "srcb": 2
+     },
+     "comps": [
+      "IDEX",
+      "FAEMUX",
+      "ALU",
+      "EXMEM",
+      "ALUSRCMUX",
+      "FBEMUX",
+      "REGDSTMUX"
+     ],
+     "timed": [
+      {
+       "comp": "ALU",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 100
+    },
+    "ID": {
+     "id": 7,
+     "class": "BEQ",
+     "wires": [
+      "instrd_a1",
+      "instrd_a2",
+      "instrd_ctrl",
+      "instrd_imm",
+      "instrd_rs",
+      "instrd_rt",
+      "pcplus4d_addbr",
+      "c_aluctl_d",
+      "c_branch_d",
+      "rd1_fad",
+      "rd1_idex",
+      "rd2_fbd",
+      "rd2_idex",
+      "signimm_sl2",
+      "fad_eq",
+      "fbd_eq",
+      "sl2_addbr",
+      "eq_and",
+      "pcbranch",
+      "pcsrc",
+      "pcsrc_clr"
+     ],
+     "hop": {
+      "instrd_a2": 0,
+      "c_aluctl_d": 1,
+      "signimm_sl2": 1,
+      "rd1_fad": 1,
+      "fad_eq": 2,
+      "instrd_rt": 0,
+      "pcplus4d_addbr": 0,
+      "instrd_ctrl": 0,
+      "sl2_addbr": 2,
+      "pcsrc": 4,
+      "pcsrc_clr": 4,
+      "instrd_rs": 0,
+      "rd2_idex": 1,
+      "eq_and": 3,
+      "pcbranch": 3,
+      "rd1_idex": 1,
+      "instrd_imm": 0,
+      "c_branch_d": 1,
+      "fbd_eq": 2,
+      "instrd_a1": 0,
+      "rd2_fbd": 1
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX",
+      "SIGNEXT",
+      "FADMUX",
+      "FBDMUX",
+      "EQ",
+      "AND",
+      "SL2",
+      "ADDBR",
+      "PCMUX",
+      "PC"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADDBR",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 150
+    },
+    "IF": {
+     "id": 8,
+     "class": "R",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcplus4f_ifid": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "WB": "R",
+    "MEM": "SW",
+    "EX": "R",
+    "ID": "BEQ",
+    "IF": "R"
    }
   },
   {
@@ -1287,6 +2693,129 @@
     "0x40": 7,
     "0x44": 12,
     "0x48": 0
+   },
+   "stages": {
+    "WB": {
+     "id": 5,
+     "class": "SW",
+     "wires": [],
+     "hop": {},
+     "comps": [
+      "MEMWB"
+     ],
+     "timed": [],
+     "used_ps": 0
+    },
+    "MEM": {
+     "id": 6,
+     "class": "R",
+     "wires": [
+      "aluoutm_memwb",
+      "c_regwrite_m",
+      "writeregm_memwb"
+     ],
+     "hop": {
+      "aluoutm_memwb": 0,
+      "writeregm_memwb": 0,
+      "c_regwrite_m": 0
+     },
+     "comps": [
+      "EXMEM",
+      "MEMWB"
+     ],
+     "timed": [],
+     "used_ps": 0
+    },
+    "EX": {
+     "id": 7,
+     "class": "BEQ",
+     "wires": [
+      "c_aluctl_e",
+      "rd1e_fae",
+      "rd2e_fbe",
+      "fae_srca",
+      "fbe_alusrc",
+      "srcb",
+      "alu_exmem"
+     ],
+     "hop": {
+      "alu_exmem": 3,
+      "c_aluctl_e": 0,
+      "fbe_alusrc": 1,
+      "rd1e_fae": 0,
+      "rd2e_fbe": 0,
+      "fae_srca": 1,
+      "srcb": 2
+     },
+     "comps": [
+      "IDEX",
+      "FAEMUX",
+      "ALU",
+      "EXMEM",
+      "ALUSRCMUX",
+      "FBEMUX"
+     ],
+     "timed": [
+      {
+       "comp": "ALU",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 100
+    },
+    "IF": {
+     "id": 9,
+     "class": "I",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid",
+      "pcplus4f_pcmux",
+      "pcnext"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcnext": 2,
+      "pcplus4f_ifid": 1,
+      "pcplus4f_pcmux": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID",
+      "PCMUX"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "WB": "SW",
+    "MEM": "R",
+    "EX": "BEQ",
+    "IF": "I"
    }
   },
   {
@@ -1402,6 +2931,145 @@
     "0x40": 7,
     "0x44": 12,
     "0x48": 0
+   },
+   "stages": {
+    "WB": {
+     "id": 6,
+     "class": "R",
+     "wires": [
+      "aluoutw_mux",
+      "c_regwrite_w",
+      "writeregw_a3",
+      "resultw_wd3"
+     ],
+     "hop": {
+      "writeregw_a3": 0,
+      "aluoutw_mux": 0,
+      "resultw_wd3": 1,
+      "c_regwrite_w": 0
+     },
+     "comps": [
+      "MEMWB",
+      "RESMUX",
+      "RF"
+     ],
+     "timed": [
+      {
+       "comp": "RF_W",
+       "start": 0,
+       "end": 50,
+       "after_hop": 1
+      }
+     ],
+     "used_ps": 50
+    },
+    "MEM": {
+     "id": 7,
+     "class": "BEQ",
+     "wires": [],
+     "hop": {},
+     "comps": [
+      "EXMEM",
+      "MEMWB"
+     ],
+     "timed": [],
+     "used_ps": 0
+    },
+    "ID": {
+     "id": 9,
+     "class": "I",
+     "wires": [
+      "instrd_a1",
+      "instrd_ctrl",
+      "instrd_imm",
+      "instrd_rs",
+      "instrd_rt",
+      "c_aluctl_d",
+      "c_alusrc_d",
+      "c_regwrite_d",
+      "rd1_idex",
+      "signimm_idex"
+     ],
+     "hop": {
+      "instrd_rt": 0,
+      "signimm_idex": 1,
+      "c_regwrite_d": 1,
+      "c_alusrc_d": 1,
+      "instrd_ctrl": 0,
+      "c_aluctl_d": 1,
+      "rd1_idex": 1,
+      "instrd_imm": 0,
+      "instrd_rs": 0,
+      "instrd_a1": 0
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX",
+      "SIGNEXT"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 150
+    },
+    "IF": {
+     "id": 10,
+     "class": "R",
+     "wires": [
+      "four_add4",
+      "pc_add4",
+      "pc_imem",
+      "imem_ifid",
+      "pcplus4f_ifid",
+      "pcplus4f_pcmux",
+      "pcnext"
+     ],
+     "hop": {
+      "four_add4": 0,
+      "pc_add4": 0,
+      "pcnext": 2,
+      "pcplus4f_ifid": 1,
+      "pcplus4f_pcmux": 1,
+      "pc_imem": 0,
+      "imem_ifid": 1
+     },
+     "comps": [
+      "PC",
+      "IMEM",
+      "ADD4",
+      "IFID",
+      "PCMUX"
+     ],
+     "timed": [
+      {
+       "comp": "IMEM",
+       "start": 0,
+       "end": 200,
+       "after_hop": 0
+      },
+      {
+       "comp": "ADD4",
+       "start": 0,
+       "end": 100,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 200
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "WB": "R",
+    "MEM": "BEQ",
+    "ID": "I",
+    "IF": "R"
    }
   },
   {
@@ -1517,6 +3185,115 @@
     "0x40": 7,
     "0x44": 12,
     "0x48": 0
+   },
+   "stages": {
+    "WB": {
+     "id": 7,
+     "class": "BEQ",
+     "wires": [],
+     "hop": {},
+     "comps": [
+      "MEMWB"
+     ],
+     "timed": [],
+     "used_ps": 0
+    },
+    "EX": {
+     "id": 9,
+     "class": "I",
+     "wires": [
+      "c_aluctl_e",
+      "c_alusrc_e",
+      "c_regwrite_e",
+      "rd1e_fae",
+      "rte_rdst",
+      "signimme_alusrc",
+      "fae_srca",
+      "writerege",
+      "srcb",
+      "alu_exmem"
+     ],
+     "hop": {
+      "rte_rdst": 0,
+      "signimme_alusrc": 0,
+      "alu_exmem": 3,
+      "c_aluctl_e": 0,
+      "c_regwrite_e": 0,
+      "rd1e_fae": 0,
+      "writerege": 1,
+      "c_alusrc_e": 0,
+      "fae_srca": 1,
+      "srcb": 2
+     },
+     "comps": [
+      "IDEX",
+      "FAEMUX",
+      "ALU",
+      "EXMEM",
+      "ALUSRCMUX",
+      "REGDSTMUX"
+     ],
+     "timed": [
+      {
+       "comp": "ALU",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 100
+    },
+    "ID": {
+     "id": 10,
+     "class": "R",
+     "wires": [
+      "instrd_a1",
+      "instrd_a2",
+      "instrd_ctrl",
+      "instrd_rd",
+      "instrd_rs",
+      "instrd_rt",
+      "c_aluctl_d",
+      "c_regdst_d",
+      "c_regwrite_d",
+      "rd1_idex",
+      "rd2_idex"
+     ],
+     "hop": {
+      "instrd_rd": 0,
+      "rd2_idex": 1,
+      "instrd_rt": 0,
+      "c_regwrite_d": 1,
+      "instrd_ctrl": 0,
+      "instrd_a2": 0,
+      "c_aluctl_d": 1,
+      "rd1_idex": 1,
+      "instrd_rs": 0,
+      "c_regdst_d": 1,
+      "instrd_a1": 0
+     },
+     "comps": [
+      "IFID",
+      "CTRL",
+      "RF",
+      "IDEX"
+     ],
+     "timed": [
+      {
+       "comp": "RF",
+       "start": 100,
+       "end": 150,
+       "after_hop": 0
+      }
+     ],
+     "used_ps": 150
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "WB": "BEQ",
+    "EX": "I",
+    "ID": "R"
    }
   },
   {
@@ -1613,6 +3390,81 @@
     "0x40": 7,
     "0x44": 12,
     "0x48": 0
+   },
+   "stages": {
+    "MEM": {
+     "id": 9,
+     "class": "I",
+     "wires": [
+      "aluoutm_memwb",
+      "c_regwrite_m",
+      "writeregm_memwb"
+     ],
+     "hop": {
+      "aluoutm_memwb": 0,
+      "writeregm_memwb": 0,
+      "c_regwrite_m": 0
+     },
+     "comps": [
+      "EXMEM",
+      "MEMWB"
+     ],
+     "timed": [],
+     "used_ps": 0
+    },
+    "EX": {
+     "id": 10,
+     "class": "R",
+     "wires": [
+      "c_aluctl_e",
+      "c_regdst_e",
+      "c_regwrite_e",
+      "rd1e_fae",
+      "rd2e_fbe",
+      "rde_rdst",
+      "fae_srca",
+      "fbe_alusrc",
+      "writerege",
+      "srcb",
+      "alu_exmem"
+     ],
+     "hop": {
+      "alu_exmem": 3,
+      "c_regdst_e": 0,
+      "rde_rdst": 0,
+      "c_aluctl_e": 0,
+      "c_regwrite_e": 0,
+      "fbe_alusrc": 1,
+      "rd1e_fae": 0,
+      "writerege": 1,
+      "rd2e_fbe": 0,
+      "fae_srca": 1,
+      "srcb": 2
+     },
+     "comps": [
+      "IDEX",
+      "FAEMUX",
+      "ALU",
+      "EXMEM",
+      "ALUSRCMUX",
+      "FBEMUX",
+      "REGDSTMUX"
+     ],
+     "timed": [
+      {
+       "comp": "ALU",
+       "start": 0,
+       "end": 100,
+       "after_hop": 2
+      }
+     ],
+     "used_ps": 100
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "MEM": "I",
+    "EX": "R"
    }
   },
   {
@@ -1707,6 +3559,63 @@
     "0x40": 7,
     "0x44": 12,
     "0x48": 0
+   },
+   "stages": {
+    "WB": {
+     "id": 9,
+     "class": "I",
+     "wires": [
+      "aluoutw_mux",
+      "c_regwrite_w",
+      "writeregw_a3",
+      "resultw_wd3"
+     ],
+     "hop": {
+      "writeregw_a3": 0,
+      "aluoutw_mux": 0,
+      "resultw_wd3": 1,
+      "c_regwrite_w": 0
+     },
+     "comps": [
+      "MEMWB",
+      "RESMUX",
+      "RF"
+     ],
+     "timed": [
+      {
+       "comp": "RF_W",
+       "start": 0,
+       "end": 50,
+       "after_hop": 1
+      }
+     ],
+     "used_ps": 50
+    },
+    "MEM": {
+     "id": 10,
+     "class": "R",
+     "wires": [
+      "aluoutm_memwb",
+      "c_regwrite_m",
+      "writeregm_memwb"
+     ],
+     "hop": {
+      "aluoutm_memwb": 0,
+      "writeregm_memwb": 0,
+      "c_regwrite_m": 0
+     },
+     "comps": [
+      "EXMEM",
+      "MEMWB"
+     ],
+     "timed": [],
+     "used_ps": 0
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "WB": "I",
+    "MEM": "R"
    }
   },
   {
@@ -1795,6 +3704,42 @@
     "0x40": 7,
     "0x44": 12,
     "0x48": 0
+   },
+   "stages": {
+    "WB": {
+     "id": 10,
+     "class": "R",
+     "wires": [
+      "aluoutw_mux",
+      "c_regwrite_w",
+      "writeregw_a3",
+      "resultw_wd3"
+     ],
+     "hop": {
+      "writeregw_a3": 0,
+      "aluoutw_mux": 0,
+      "resultw_wd3": 1,
+      "c_regwrite_w": 0
+     },
+     "comps": [
+      "MEMWB",
+      "RESMUX",
+      "RF"
+     ],
+     "timed": [
+      {
+       "comp": "RF_W",
+       "start": 0,
+       "end": 50,
+       "after_hop": 1
+      }
+     ],
+     "used_ps": 50
+    }
+   },
+   "hazard_wires": [],
+   "classes": {
+    "WB": "R"
    }
   }
  ],
@@ -1867,6 +3812,18 @@
    "14": "M",
    "15": "W"
   }
+ },
+ "classes": {
+  "1": "LW",
+  "2": "R",
+  "3": "R",
+  "4": "R",
+  "5": "SW",
+  "6": "R",
+  "7": "BEQ",
+  "8": "R",
+  "9": "I",
+  "10": "R"
  },
  "flushed": [
   8

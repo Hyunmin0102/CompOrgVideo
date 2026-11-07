@@ -63,6 +63,148 @@ def stage_delay():
             "M": D["mem"], "W": 2 * (D["rf"] + D["other"])}
 
 
+# ------------------------------------------------------------------ paths ---
+# Causal order of every datapath wire inside its stage (0 = leaves a pipeline
+# register / the PC; n = after n parts).  Wire names = inorder/shared/datapath.py PL_WIRES.
+PL_HOP = {
+    "pc_imem": 0, "pc_add4": 0, "four_add4": 0, "imem_ifid": 1, "pcplus4f_ifid": 1, "pcplus4f_pcmux": 1,
+    "pcnext": 2, "h_stallf": 0,
+    "instrd_ctrl": 0, "instrd_a1": 0, "instrd_a2": 0, "instrd_rs": 0, "instrd_rt": 0, "instrd_rd": 0,
+    "instrd_imm": 0, "pcplus4d_addbr": 0, "fwd_m_fad": 0, "fwd_m_fbd": 0, "h_fwdad": 0, "h_fwdbd": 0,
+    "h_stalld": 0, "c_regwrite_d": 1, "c_memtoreg_d": 1, "c_memwrite_d": 1, "c_aluctl_d": 1, "c_alusrc_d": 1,
+    "c_regdst_d": 1, "c_branch_d": 1, "rd1_idex": 1, "rd2_idex": 1, "rd1_fad": 1, "rd2_fbd": 1,
+    "signimm_idex": 1, "signimm_sl2": 1, "fad_eq": 2, "fbd_eq": 2, "sl2_addbr": 2, "eq_and": 3,
+    "pcbranch": 3, "pcsrc": 4, "pcsrc_clr": 4,
+    "rd1e_fae": 0, "rd2e_fbe": 0, "fwd_m_fae": 0, "fwd_m_fbe": 0, "fwd_w_fae": 0, "fwd_w_fbe": 0,
+    "h_fwdae": 0, "h_fwdbe": 0, "h_flushe": 0, "signimme_alusrc": 0, "rte_rdst": 0, "rde_rdst": 0,
+    "c_regwrite_e": 0, "c_memtoreg_e": 0, "c_memwrite_e": 0, "c_aluctl_e": 0, "c_alusrc_e": 0,
+    "c_regdst_e": 0, "fae_srca": 1, "fbe_alusrc": 1, "writedatae": 1, "writerege": 1, "srcb": 2,
+    "alu_exmem": 3,
+    "aluoutm_dmem": 0, "writedatam_dmem": 0, "aluoutm_memwb": 0, "writeregm_memwb": 0, "c_memwrite_m": 0,
+    "c_regwrite_m": 0, "c_memtoreg_m": 0, "dmem_memwb": 1,
+    "readdataw_mux": 0, "aluoutw_mux": 0, "c_memtoreg_w": 0, "c_regwrite_w": 0, "writeregw_a3": 0,
+    "resultw_wd3": 1,
+}
+
+
+def klass(word):
+    d = decode(word)
+    return {0x00: "R", 0x08: "I", 0x23: "LW", 0x2B: "SW", 0x04: "BEQ"}[d.opcode]
+
+
+def stage_paths(k, st, word_of):
+    """Which wires / parts / timed units each occupied stage uses in cycle st (sim result).
+    Delays: WB writes the register file in the first half (0-50 ps), Decode reads it in
+    the second half (100-150 ps) — slide 83's x2 for these two stages."""
+    D = DELAYS
+    half = st["_period"] // 2
+    out = {}
+    h = st["hazard"]
+    for sname, occ_key in (("WB", "W"), ("MEM", "M"), ("EX", "E"), ("ID", "D"), ("IF", "F")):
+        i = st["occupancy"][occ_key]
+        if i is None:
+            continue
+        c = klass(word_of[i])
+        w, comps, ev = [], [], []
+        uses_rt = c in ("R", "SW", "BEQ")
+        if sname == "IF":
+            w += ["pc_imem", "imem_ifid", "pc_add4", "four_add4", "pcplus4f_ifid"]
+            comps += ["PC", "IMEM", "ADD4", "IFID"]
+            if not h["StallF"] and not h["PCSrcD"]:
+                w += ["pcplus4f_pcmux", "pcnext"]
+                comps += ["PCMUX"]
+            ev += [{"comp": "IMEM", "start": 0, "end": D["mem"], "after_hop": 0},
+                   {"comp": "ADD4", "start": 0, "end": D["adder"], "after_hop": 0}]
+        elif sname == "ID":
+            ctl = st["D"]["control"]
+            w += ["instrd_ctrl", "instrd_a1", "rd1_idex", "instrd_rs", "instrd_rt", "c_aluctl_d"]
+            comps += ["IFID", "CTRL", "RF", "IDEX"]
+            if uses_rt:
+                w += ["instrd_a2", "rd2_idex"]
+            if c == "R":
+                w += ["instrd_rd"]
+            if c in ("I", "LW", "SW", "BEQ"):
+                w += ["instrd_imm"]
+                comps += ["SIGNEXT"]
+            if c in ("I", "LW", "SW"):
+                w += ["signimm_idex"]
+            for sig, wire in (("RegWrite", "c_regwrite_d"), ("MemtoReg", "c_memtoreg_d"),
+                              ("MemWrite", "c_memwrite_d"), ("ALUSrc", "c_alusrc_d"), ("RegDst", "c_regdst_d")):
+                if ctl[sig] == 1:
+                    w.append(wire)
+            ev.append({"comp": "RF", "start": half, "end": half + D["rf"], "after_hop": 0})
+            if c == "BEQ":
+                w += ["c_branch_d", "rd1_fad", "rd2_fbd", "fad_eq", "fbd_eq", "eq_and", "signimm_sl2",
+                      "sl2_addbr", "pcplus4d_addbr", "pcbranch"]
+                comps += ["FADMUX", "FBDMUX", "EQ", "AND", "SL2", "ADDBR"]
+                ev.append({"comp": "ADDBR", "start": 0, "end": D["adder"], "after_hop": 2})
+                if h["PCSrcD"]:
+                    w += ["pcsrc", "pcsrc_clr"]
+                    comps += ["PCMUX", "PC"]
+            if h["ForwardAD"]:
+                w += ["fwd_m_fad", "h_fwdad"]
+            if h["ForwardBD"]:
+                w += ["fwd_m_fbd", "h_fwdbd"]
+        elif sname == "EX":
+            e = st["E"]
+            fa, fb = h["ForwardAE"], h["ForwardBE"]
+            w += [{"00": "rd1e_fae", "10": "fwd_m_fae", "01": "fwd_w_fae"}[fa], "fae_srca", "srcb", "alu_exmem",
+                  "c_aluctl_e"]
+            comps += ["IDEX", "FAEMUX", "ALU", "EXMEM", "ALUSRCMUX"]
+            if fa != "00":
+                w.append("h_fwdae")
+            if uses_rt:
+                w.append({"00": "rd2e_fbe", "10": "fwd_m_fbe", "01": "fwd_w_fbe"}[fb])
+                comps.append("FBEMUX")
+                if fb != "00":
+                    w.append("h_fwdbe")
+            if c in ("R", "BEQ"):
+                w += ["fbe_alusrc"]
+            else:
+                w += ["signimme_alusrc", "c_alusrc_e"]
+            if c == "SW":
+                w += ["writedatae", "c_memwrite_e"]
+            if c in ("R", "I", "LW"):
+                w += ["writerege", "c_regwrite_e"]
+                comps.append("REGDSTMUX")
+                w += ["rde_rdst", "c_regdst_e"] if c == "R" else ["rte_rdst"]
+            if c == "LW":
+                w.append("c_memtoreg_e")
+            ev.append({"comp": "ALU", "start": 0, "end": D["alu"], "after_hop": 2})
+            del e
+        elif sname == "MEM":
+            comps += ["EXMEM", "MEMWB"]
+            if c in ("LW", "SW"):
+                w += ["aluoutm_dmem"]
+                comps.append("DMEM")
+                ev.append({"comp": "DMEM", "start": 0, "end": D["mem"], "after_hop": 0})
+            if c == "SW":
+                w += ["writedatam_dmem", "c_memwrite_m"]
+            if c == "LW":
+                w += ["dmem_memwb", "c_memtoreg_m"]
+            if c in ("R", "I"):
+                w += ["aluoutm_memwb"]
+            if c in ("R", "I", "LW"):
+                w += ["writeregm_memwb", "c_regwrite_m"]
+        else:   # WB
+            comps += ["MEMWB"]
+            if c in ("R", "I", "LW"):
+                w += ["readdataw_mux" if c == "LW" else "aluoutw_mux", "resultw_wd3", "writeregw_a3",
+                      "c_regwrite_w"]
+                comps += ["RESMUX", "RF"]
+                if c == "LW":
+                    w.append("c_memtoreg_w")
+                ev.append({"comp": "RF_W", "start": 0, "end": D["rf"], "after_hop": 1})
+        used = max([e_["end"] for e_ in ev], default=0)
+        out[sname] = {"id": i, "class": c, "wires": sorted(set(w), key=lambda x: (PL_HOP[x], x)),
+                      "hop": {x: PL_HOP[x] for x in set(w)}, "comps": list(dict.fromkeys(comps)),
+                      "timed": ev, "used_ps": used}
+    haz = []
+    if h["StallF"]:
+        haz += ["h_stallf", "h_stalld", "h_flushe"]
+    return out, haz
+
+
 def build():
     prog = assemble(PROGRAM, BASE_PC)
     imem = {p["addr"]: p for p in prog}
@@ -231,6 +373,13 @@ def build():
         PC, Dr, Er, Mr, Wr = nPC, nD, nE, nM, nW
         regs[0] = 0
 
+    word_of = {idx[p["addr"]]: p["word"] for p in prog}
+    for k, st in enumerate(steps):
+        st["_period"] = period
+        st["stages"], st["hazard_wires"] = stage_paths(k, st, word_of)
+        del st["_period"]
+        st["classes"] = {sn: v["class"] for sn, v in st["stages"].items()}
+
     # pipeline diagram: instruction -> {cycle: stage}
     diagram = {}
     for s in steps:
@@ -250,7 +399,7 @@ def build():
                                for p, r in zip(prog, REASONS)],
                    "init_regs": INIT_REGS, "init_mem": {f"0x{a:02X}": v for a, v in INIT_MEM.items()},
                    "show_regs": SHOW_REGS, "show_mem": [f"0x{a:02X}" for a in SHOW_MEM]},
-        "steps": steps, "diagram": diagram, "flushed": flushed, "completed": completed,
+        "steps": steps, "diagram": diagram, "classes": {str(i): klass(w) for i, w in word_of.items()}, "flushed": flushed, "completed": completed,
         "final": {"regs": {reg_name(i): s32(v) for i, v in enumerate(regs)},
                   "mem": {f"0x{a:02X}": s32(mem.get(a, 0)) for a in sorted(INIT_MEM)},
                   "cycles": len(steps), "instructions": len(completed),
