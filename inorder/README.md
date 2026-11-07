@@ -31,4 +31,11 @@ ETH DDCA(Onur Mutlu) L10–L11의 세 가지 마이크로아키텍처가 **같�
 
 ## 영상
 - `single_cycle/` — 1편 (single-cycle)
-- `multi_cycle/`, `pipeline/` — 예정
+- `multi_cycle/` — 2편 (multi-cycle)
+- `pipeline/` — 3편 (pipeline)
+
+| | single-cycle | multi-cycle | pipeline |
+|---|---|---|---|
+| 사이클 | 9 | 36 | 15 |
+| 클록 | 600ps | 200ps | 200ps |
+| 총 시간 | 5400ps | 7200ps | 3000ps |

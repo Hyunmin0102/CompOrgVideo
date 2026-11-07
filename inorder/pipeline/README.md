@@ -22,6 +22,21 @@ python3 inorder/pipeline/verify/verify_pipeline.py      # -> out/verify_report.m
   200dpi 이미지에서 픽셀 좌표로 옮긴 배치. 화면 왼쪽 2/3에 두고, 오른쪽은 파이프라인 다이어그램·레지스터 표.
   `PL_WIRE_STAGE`로 배선마다 단계를 정해, 그 단계에 있는 명령어의 색(`common/style.py`의 `INSTR_COLORS`)으로 칠한다.
 
+## 렌더링
+```bash
+manim --dry_run inorder/pipeline/render/pipeline_scene.py Pipeline                 # 화면 ↔ trace 대조만
+PL_STEPS=7 manim -ql --media_dir /tmp/media inorder/pipeline/render/pipeline_scene.py Pipeline   # 처음 N사이클
+manim --resolution 1920,1080 --frame_rate 30 --media_dir /tmp/media \
+      inorder/pipeline/render/pipeline_scene.py Pipeline                           # 완성본 (약 8분 27초)
+```
+
+## 연출
+- 왼쪽 Fig. 7.58 데이터패스: 단계 바탕·라벨을 그 단계 명령어의 색으로. 오른쪽: 파이프라인 다이어그램(매 사이클 한 열),
+  hazard unit 출력, 레지스터·메모리. 왼쪽 아래: 단계별 ps 막대(WB 쓰기 0→50, ID 읽기 100→150, 반 사이클 선).
+- 사이클 안에서는 WB → MEM → EX → ID → (hazard) → IF 순서로 한 단계씩, 배선은 인과 순서(`hop`)대로 명령어 색으로.
+- stall·forwarding·flush·반 사이클 레지스터 파일은 해당 사이클에서 슬라이드 69 식과 함께 자막으로 설명하고 선을 빨갛게 강조.
+- 클록 에지에서 레지스터·메모리·PC 값을 하나씩 표로. 마지막: 세 마이크로아키텍처 실행 시간 비교와 사이클 수 식.
+
 ## 결과
 15 사이클 × 200ps = 3000ps (single 5400ps, multi 7200ps).
 I1→I2 lw stall 1, I1→I2·I2→I4 WB→EX, I2→I3 MEM→EX, I2→I5·I4→I7 레지스터 파일 반 사이클, I7 taken → I8 flush.
