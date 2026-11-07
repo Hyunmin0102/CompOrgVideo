@@ -197,7 +197,7 @@ def stage_paths(k, st, word_of):
                 ev.append({"comp": "RF_W", "start": 0, "end": D["rf"], "after_hop": 1})
         used = max([e_["end"] for e_ in ev], default=0)
         out[sname] = {"id": i, "class": c, "wires": sorted(set(w), key=lambda x: (PL_HOP[x], x)),
-                      "hop": {x: PL_HOP[x] for x in set(w)}, "comps": list(dict.fromkeys(comps)),
+                      "hop": {x: PL_HOP[x] for x in sorted(set(w))}, "comps": list(dict.fromkeys(comps)),
                       "timed": ev, "used_ps": used}
     haz = []
     if h["StallF"]:

@@ -220,12 +220,12 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
+      "pc_imem": 0,
       "pcnext": 2,
       "pcplus4f_ifid": 1,
-      "pcplus4f_pcmux": 1,
-      "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_pcmux": 1
      },
      "comps": [
       "PC",
@@ -376,17 +376,17 @@
       "signimm_idex"
      ],
      "hop": {
-      "instrd_rt": 0,
-      "signimm_idex": 1,
-      "c_regwrite_d": 1,
+      "c_aluctl_d": 1,
       "c_alusrc_d": 1,
       "c_memtoreg_d": 1,
+      "c_regwrite_d": 1,
+      "instrd_a1": 0,
       "instrd_ctrl": 0,
-      "c_aluctl_d": 1,
-      "rd1_idex": 1,
       "instrd_imm": 0,
       "instrd_rs": 0,
-      "instrd_a1": 0
+      "instrd_rt": 0,
+      "rd1_idex": 1,
+      "signimm_idex": 1
      },
      "comps": [
       "IFID",
@@ -419,12 +419,12 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
+      "pc_imem": 0,
       "pcnext": 2,
       "pcplus4f_ifid": 1,
-      "pcplus4f_pcmux": 1,
-      "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_pcmux": 1
      },
      "comps": [
       "PC",
@@ -591,17 +591,17 @@
       "alu_exmem"
      ],
      "hop": {
-      "rte_rdst": 0,
-      "signimme_alusrc": 0,
       "alu_exmem": 3,
       "c_aluctl_e": 0,
-      "c_regwrite_e": 0,
-      "rd1e_fae": 0,
-      "writerege": 1,
-      "c_memtoreg_e": 0,
       "c_alusrc_e": 0,
+      "c_memtoreg_e": 0,
+      "c_regwrite_e": 0,
       "fae_srca": 1,
-      "srcb": 2
+      "rd1e_fae": 0,
+      "rte_rdst": 0,
+      "signimme_alusrc": 0,
+      "srcb": 2,
+      "writerege": 1
      },
      "comps": [
       "IDEX",
@@ -638,17 +638,17 @@
       "rd2_idex"
      ],
      "hop": {
-      "instrd_rd": 0,
-      "rd2_idex": 1,
-      "instrd_rt": 0,
-      "c_regwrite_d": 1,
-      "instrd_ctrl": 0,
-      "instrd_a2": 0,
       "c_aluctl_d": 1,
-      "rd1_idex": 1,
-      "instrd_rs": 0,
       "c_regdst_d": 1,
-      "instrd_a1": 0
+      "c_regwrite_d": 1,
+      "instrd_a1": 0,
+      "instrd_a2": 0,
+      "instrd_ctrl": 0,
+      "instrd_rd": 0,
+      "instrd_rs": 0,
+      "instrd_rt": 0,
+      "rd1_idex": 1,
+      "rd2_idex": 1
      },
      "comps": [
       "IFID",
@@ -678,10 +678,10 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
-      "pcplus4f_ifid": 1,
       "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_ifid": 1
      },
      "comps": [
       "PC",
@@ -839,9 +839,9 @@
      "hop": {
       "aluoutm_dmem": 0,
       "c_memtoreg_m": 0,
-      "writeregm_memwb": 0,
+      "c_regwrite_m": 0,
       "dmem_memwb": 1,
-      "c_regwrite_m": 0
+      "writeregm_memwb": 0
      },
      "comps": [
       "EXMEM",
@@ -877,19 +877,19 @@
       "rd2_idex"
      ],
      "hop": {
-      "instrd_rd": 0,
-      "rd2_idex": 1,
-      "instrd_rt": 0,
-      "c_regwrite_d": 1,
-      "instrd_ctrl": 0,
-      "instrd_a2": 0,
-      "h_fwdad": 0,
       "c_aluctl_d": 1,
-      "rd1_idex": 1,
-      "fwd_m_fad": 0,
-      "instrd_rs": 0,
       "c_regdst_d": 1,
-      "instrd_a1": 0
+      "c_regwrite_d": 1,
+      "fwd_m_fad": 0,
+      "h_fwdad": 0,
+      "instrd_a1": 0,
+      "instrd_a2": 0,
+      "instrd_ctrl": 0,
+      "instrd_rd": 0,
+      "instrd_rs": 0,
+      "instrd_rt": 0,
+      "rd1_idex": 1,
+      "rd2_idex": 1
      },
      "comps": [
       "IFID",
@@ -921,12 +921,12 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
+      "pc_imem": 0,
       "pcnext": 2,
       "pcplus4f_ifid": 1,
-      "pcplus4f_pcmux": 1,
-      "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_pcmux": 1
      },
      "comps": [
       "PC",
@@ -1097,10 +1097,10 @@
      ],
      "hop": {
       "c_memtoreg_w": 0,
+      "c_regwrite_w": 0,
       "readdataw_mux": 0,
       "resultw_wd3": 1,
-      "writeregw_a3": 0,
-      "c_regwrite_w": 0
+      "writeregw_a3": 0
      },
      "comps": [
       "MEMWB",
@@ -1136,17 +1136,17 @@
      ],
      "hop": {
       "alu_exmem": 3,
-      "c_regdst_e": 0,
-      "fwd_w_fae": 0,
-      "rde_rdst": 0,
       "c_aluctl_e": 0,
+      "c_regdst_e": 0,
       "c_regwrite_e": 0,
-      "fbe_alusrc": 1,
-      "writerege": 1,
-      "rd2e_fbe": 0,
       "fae_srca": 1,
+      "fbe_alusrc": 1,
+      "fwd_w_fae": 0,
+      "h_fwdae": 0,
+      "rd2e_fbe": 0,
+      "rde_rdst": 0,
       "srcb": 2,
-      "h_fwdae": 0
+      "writerege": 1
      },
      "comps": [
       "IDEX",
@@ -1184,17 +1184,17 @@
       "rd2_idex"
      ],
      "hop": {
-      "instrd_rd": 0,
-      "rd2_idex": 1,
-      "instrd_rt": 0,
-      "c_regwrite_d": 1,
-      "instrd_ctrl": 0,
-      "instrd_a2": 0,
       "c_aluctl_d": 1,
-      "rd1_idex": 1,
-      "instrd_rs": 0,
       "c_regdst_d": 1,
-      "instrd_a1": 0
+      "c_regwrite_d": 1,
+      "instrd_a1": 0,
+      "instrd_a2": 0,
+      "instrd_ctrl": 0,
+      "instrd_rd": 0,
+      "instrd_rs": 0,
+      "instrd_rt": 0,
+      "rd1_idex": 1,
+      "rd2_idex": 1
      },
      "comps": [
       "IFID",
@@ -1226,12 +1226,12 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
+      "pc_imem": 0,
       "pcnext": 2,
       "pcplus4f_ifid": 1,
-      "pcplus4f_pcmux": 1,
-      "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_pcmux": 1
      },
      "comps": [
       "PC",
@@ -1401,8 +1401,8 @@
      ],
      "hop": {
       "aluoutm_memwb": 0,
-      "writeregm_memwb": 0,
-      "c_regwrite_m": 0
+      "c_regwrite_m": 0,
+      "writeregm_memwb": 0
      },
      "comps": [
       "EXMEM",
@@ -1430,17 +1430,17 @@
      ],
      "hop": {
       "alu_exmem": 3,
-      "c_regdst_e": 0,
-      "rde_rdst": 0,
       "c_aluctl_e": 0,
+      "c_regdst_e": 0,
       "c_regwrite_e": 0,
-      "fbe_alusrc": 1,
-      "writerege": 1,
-      "rd2e_fbe": 0,
-      "fwd_m_fae": 0,
       "fae_srca": 1,
+      "fbe_alusrc": 1,
+      "fwd_m_fae": 0,
+      "h_fwdae": 0,
+      "rd2e_fbe": 0,
+      "rde_rdst": 0,
       "srcb": 2,
-      "h_fwdae": 0
+      "writerege": 1
      },
      "comps": [
       "IDEX",
@@ -1480,19 +1480,19 @@
       "rd2_idex"
      ],
      "hop": {
-      "instrd_rd": 0,
-      "rd2_idex": 1,
-      "instrd_rt": 0,
-      "c_regwrite_d": 1,
-      "instrd_ctrl": 0,
-      "instrd_a2": 0,
-      "h_fwdad": 0,
       "c_aluctl_d": 1,
-      "rd1_idex": 1,
-      "fwd_m_fad": 0,
-      "instrd_rs": 0,
       "c_regdst_d": 1,
-      "instrd_a1": 0
+      "c_regwrite_d": 1,
+      "fwd_m_fad": 0,
+      "h_fwdad": 0,
+      "instrd_a1": 0,
+      "instrd_a2": 0,
+      "instrd_ctrl": 0,
+      "instrd_rd": 0,
+      "instrd_rs": 0,
+      "instrd_rt": 0,
+      "rd1_idex": 1,
+      "rd2_idex": 1
      },
      "comps": [
       "IFID",
@@ -1524,12 +1524,12 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
+      "pc_imem": 0,
       "pcnext": 2,
       "pcplus4f_ifid": 1,
-      "pcplus4f_pcmux": 1,
-      "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_pcmux": 1
      },
      "comps": [
       "PC",
@@ -1712,10 +1712,10 @@
       "resultw_wd3"
      ],
      "hop": {
-      "writeregw_a3": 0,
       "aluoutw_mux": 0,
+      "c_regwrite_w": 0,
       "resultw_wd3": 1,
-      "c_regwrite_w": 0
+      "writeregw_a3": 0
      },
      "comps": [
       "MEMWB",
@@ -1742,8 +1742,8 @@
      ],
      "hop": {
       "aluoutm_memwb": 0,
-      "writeregm_memwb": 0,
-      "c_regwrite_m": 0
+      "c_regwrite_m": 0,
+      "writeregm_memwb": 0
      },
      "comps": [
       "EXMEM",
@@ -1771,17 +1771,17 @@
      ],
      "hop": {
       "alu_exmem": 3,
-      "c_regdst_e": 0,
-      "fwd_w_fae": 0,
-      "rde_rdst": 0,
       "c_aluctl_e": 0,
+      "c_regdst_e": 0,
       "c_regwrite_e": 0,
-      "fbe_alusrc": 1,
-      "writerege": 1,
-      "rd2e_fbe": 0,
       "fae_srca": 1,
+      "fbe_alusrc": 1,
+      "fwd_w_fae": 0,
+      "h_fwdae": 0,
+      "rd2e_fbe": 0,
+      "rde_rdst": 0,
       "srcb": 2,
-      "h_fwdae": 0
+      "writerege": 1
      },
      "comps": [
       "IDEX",
@@ -1820,18 +1820,18 @@
       "signimm_idex"
      ],
      "hop": {
-      "rd2_idex": 1,
-      "instrd_rt": 0,
-      "signimm_idex": 1,
-      "c_alusrc_d": 1,
-      "instrd_ctrl": 0,
-      "instrd_a2": 0,
       "c_aluctl_d": 1,
-      "rd1_idex": 1,
-      "instrd_imm": 0,
+      "c_alusrc_d": 1,
       "c_memwrite_d": 1,
+      "instrd_a1": 0,
+      "instrd_a2": 0,
+      "instrd_ctrl": 0,
+      "instrd_imm": 0,
       "instrd_rs": 0,
-      "instrd_a1": 0
+      "instrd_rt": 0,
+      "rd1_idex": 1,
+      "rd2_idex": 1,
+      "signimm_idex": 1
      },
      "comps": [
       "IFID",
@@ -1864,12 +1864,12 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
+      "pc_imem": 0,
       "pcnext": 2,
       "pcplus4f_ifid": 1,
-      "pcplus4f_pcmux": 1,
-      "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_pcmux": 1
      },
      "comps": [
       "PC",
@@ -2037,10 +2037,10 @@
       "resultw_wd3"
      ],
      "hop": {
-      "writeregw_a3": 0,
       "aluoutw_mux": 0,
+      "c_regwrite_w": 0,
       "resultw_wd3": 1,
-      "c_regwrite_w": 0
+      "writeregw_a3": 0
      },
      "comps": [
       "MEMWB",
@@ -2067,8 +2067,8 @@
      ],
      "hop": {
       "aluoutm_memwb": 0,
-      "writeregm_memwb": 0,
-      "c_regwrite_m": 0
+      "c_regwrite_m": 0,
+      "writeregm_memwb": 0
      },
      "comps": [
       "EXMEM",
@@ -2093,16 +2093,16 @@
       "alu_exmem"
      ],
      "hop": {
-      "signimme_alusrc": 0,
       "alu_exmem": 3,
       "c_aluctl_e": 0,
-      "rd1e_fae": 0,
-      "c_memwrite_e": 0,
-      "rd2e_fbe": 0,
       "c_alusrc_e": 0,
-      "writedatae": 1,
+      "c_memwrite_e": 0,
       "fae_srca": 1,
-      "srcb": 2
+      "rd1e_fae": 0,
+      "rd2e_fbe": 0,
+      "signimme_alusrc": 0,
+      "srcb": 2,
+      "writedatae": 1
      },
      "comps": [
       "IDEX",
@@ -2139,17 +2139,17 @@
       "rd2_idex"
      ],
      "hop": {
-      "instrd_rd": 0,
-      "rd2_idex": 1,
-      "instrd_rt": 0,
-      "c_regwrite_d": 1,
-      "instrd_ctrl": 0,
-      "instrd_a2": 0,
       "c_aluctl_d": 1,
-      "rd1_idex": 1,
-      "instrd_rs": 0,
       "c_regdst_d": 1,
-      "instrd_a1": 0
+      "c_regwrite_d": 1,
+      "instrd_a1": 0,
+      "instrd_a2": 0,
+      "instrd_ctrl": 0,
+      "instrd_rd": 0,
+      "instrd_rs": 0,
+      "instrd_rt": 0,
+      "rd1_idex": 1,
+      "rd2_idex": 1
      },
      "comps": [
       "IFID",
@@ -2181,12 +2181,12 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
+      "pc_imem": 0,
       "pcnext": 2,
       "pcplus4f_ifid": 1,
-      "pcplus4f_pcmux": 1,
-      "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_pcmux": 1
      },
      "comps": [
       "PC",
@@ -2370,10 +2370,10 @@
       "resultw_wd3"
      ],
      "hop": {
-      "writeregw_a3": 0,
       "aluoutw_mux": 0,
+      "c_regwrite_w": 0,
       "resultw_wd3": 1,
-      "c_regwrite_w": 0
+      "writeregw_a3": 0
      },
      "comps": [
       "MEMWB",
@@ -2399,9 +2399,9 @@
       "writedatam_dmem"
      ],
      "hop": {
-      "writedatam_dmem": 0,
+      "aluoutm_dmem": 0,
       "c_memwrite_m": 0,
-      "aluoutm_dmem": 0
+      "writedatam_dmem": 0
      },
      "comps": [
       "EXMEM",
@@ -2436,16 +2436,16 @@
      ],
      "hop": {
       "alu_exmem": 3,
-      "c_regdst_e": 0,
-      "rde_rdst": 0,
       "c_aluctl_e": 0,
+      "c_regdst_e": 0,
       "c_regwrite_e": 0,
+      "fae_srca": 1,
       "fbe_alusrc": 1,
       "rd1e_fae": 0,
-      "writerege": 1,
       "rd2e_fbe": 0,
-      "fae_srca": 1,
-      "srcb": 2
+      "rde_rdst": 0,
+      "srcb": 2,
+      "writerege": 1
      },
      "comps": [
       "IDEX",
@@ -2493,27 +2493,27 @@
       "pcsrc_clr"
      ],
      "hop": {
-      "instrd_a2": 0,
       "c_aluctl_d": 1,
-      "signimm_sl2": 1,
-      "rd1_fad": 1,
-      "fad_eq": 2,
-      "instrd_rt": 0,
-      "pcplus4d_addbr": 0,
-      "instrd_ctrl": 0,
-      "sl2_addbr": 2,
-      "pcsrc": 4,
-      "pcsrc_clr": 4,
-      "instrd_rs": 0,
-      "rd2_idex": 1,
-      "eq_and": 3,
-      "pcbranch": 3,
-      "rd1_idex": 1,
-      "instrd_imm": 0,
       "c_branch_d": 1,
+      "eq_and": 3,
+      "fad_eq": 2,
       "fbd_eq": 2,
       "instrd_a1": 0,
-      "rd2_fbd": 1
+      "instrd_a2": 0,
+      "instrd_ctrl": 0,
+      "instrd_imm": 0,
+      "instrd_rs": 0,
+      "instrd_rt": 0,
+      "pcbranch": 3,
+      "pcplus4d_addbr": 0,
+      "pcsrc": 4,
+      "pcsrc_clr": 4,
+      "rd1_fad": 1,
+      "rd1_idex": 1,
+      "rd2_fbd": 1,
+      "rd2_idex": 1,
+      "signimm_sl2": 1,
+      "sl2_addbr": 2
      },
      "comps": [
       "IFID",
@@ -2558,10 +2558,10 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
-      "pcplus4f_ifid": 1,
       "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_ifid": 1
      },
      "comps": [
       "PC",
@@ -2716,8 +2716,8 @@
      ],
      "hop": {
       "aluoutm_memwb": 0,
-      "writeregm_memwb": 0,
-      "c_regwrite_m": 0
+      "c_regwrite_m": 0,
+      "writeregm_memwb": 0
      },
      "comps": [
       "EXMEM",
@@ -2741,10 +2741,10 @@
      "hop": {
       "alu_exmem": 3,
       "c_aluctl_e": 0,
+      "fae_srca": 1,
       "fbe_alusrc": 1,
       "rd1e_fae": 0,
       "rd2e_fbe": 0,
-      "fae_srca": 1,
       "srcb": 2
      },
      "comps": [
@@ -2779,12 +2779,12 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
+      "pc_imem": 0,
       "pcnext": 2,
       "pcplus4f_ifid": 1,
-      "pcplus4f_pcmux": 1,
-      "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_pcmux": 1
      },
      "comps": [
       "PC",
@@ -2943,10 +2943,10 @@
       "resultw_wd3"
      ],
      "hop": {
-      "writeregw_a3": 0,
       "aluoutw_mux": 0,
+      "c_regwrite_w": 0,
       "resultw_wd3": 1,
-      "c_regwrite_w": 0
+      "writeregw_a3": 0
      },
      "comps": [
       "MEMWB",
@@ -2991,16 +2991,16 @@
       "signimm_idex"
      ],
      "hop": {
-      "instrd_rt": 0,
-      "signimm_idex": 1,
-      "c_regwrite_d": 1,
-      "c_alusrc_d": 1,
-      "instrd_ctrl": 0,
       "c_aluctl_d": 1,
-      "rd1_idex": 1,
+      "c_alusrc_d": 1,
+      "c_regwrite_d": 1,
+      "instrd_a1": 0,
+      "instrd_ctrl": 0,
       "instrd_imm": 0,
       "instrd_rs": 0,
-      "instrd_a1": 0
+      "instrd_rt": 0,
+      "rd1_idex": 1,
+      "signimm_idex": 1
      },
      "comps": [
       "IFID",
@@ -3033,12 +3033,12 @@
      ],
      "hop": {
       "four_add4": 0,
+      "imem_ifid": 1,
       "pc_add4": 0,
+      "pc_imem": 0,
       "pcnext": 2,
       "pcplus4f_ifid": 1,
-      "pcplus4f_pcmux": 1,
-      "pc_imem": 0,
-      "imem_ifid": 1
+      "pcplus4f_pcmux": 1
      },
      "comps": [
       "PC",
@@ -3214,16 +3214,16 @@
       "alu_exmem"
      ],
      "hop": {
-      "rte_rdst": 0,
-      "signimme_alusrc": 0,
       "alu_exmem": 3,
       "c_aluctl_e": 0,
-      "c_regwrite_e": 0,
-      "rd1e_fae": 0,
-      "writerege": 1,
       "c_alusrc_e": 0,
+      "c_regwrite_e": 0,
       "fae_srca": 1,
-      "srcb": 2
+      "rd1e_fae": 0,
+      "rte_rdst": 0,
+      "signimme_alusrc": 0,
+      "srcb": 2,
+      "writerege": 1
      },
      "comps": [
       "IDEX",
@@ -3260,17 +3260,17 @@
       "rd2_idex"
      ],
      "hop": {
-      "instrd_rd": 0,
-      "rd2_idex": 1,
-      "instrd_rt": 0,
-      "c_regwrite_d": 1,
-      "instrd_ctrl": 0,
-      "instrd_a2": 0,
       "c_aluctl_d": 1,
-      "rd1_idex": 1,
-      "instrd_rs": 0,
       "c_regdst_d": 1,
-      "instrd_a1": 0
+      "c_regwrite_d": 1,
+      "instrd_a1": 0,
+      "instrd_a2": 0,
+      "instrd_ctrl": 0,
+      "instrd_rd": 0,
+      "instrd_rs": 0,
+      "instrd_rt": 0,
+      "rd1_idex": 1,
+      "rd2_idex": 1
      },
      "comps": [
       "IFID",
@@ -3402,8 +3402,8 @@
      ],
      "hop": {
       "aluoutm_memwb": 0,
-      "writeregm_memwb": 0,
-      "c_regwrite_m": 0
+      "c_regwrite_m": 0,
+      "writeregm_memwb": 0
      },
      "comps": [
       "EXMEM",
@@ -3430,16 +3430,16 @@
      ],
      "hop": {
       "alu_exmem": 3,
-      "c_regdst_e": 0,
-      "rde_rdst": 0,
       "c_aluctl_e": 0,
+      "c_regdst_e": 0,
       "c_regwrite_e": 0,
+      "fae_srca": 1,
       "fbe_alusrc": 1,
       "rd1e_fae": 0,
-      "writerege": 1,
       "rd2e_fbe": 0,
-      "fae_srca": 1,
-      "srcb": 2
+      "rde_rdst": 0,
+      "srcb": 2,
+      "writerege": 1
      },
      "comps": [
       "IDEX",
@@ -3571,10 +3571,10 @@
       "resultw_wd3"
      ],
      "hop": {
-      "writeregw_a3": 0,
       "aluoutw_mux": 0,
+      "c_regwrite_w": 0,
       "resultw_wd3": 1,
-      "c_regwrite_w": 0
+      "writeregw_a3": 0
      },
      "comps": [
       "MEMWB",
@@ -3601,8 +3601,8 @@
      ],
      "hop": {
       "aluoutm_memwb": 0,
-      "writeregm_memwb": 0,
-      "c_regwrite_m": 0
+      "c_regwrite_m": 0,
+      "writeregm_memwb": 0
      },
      "comps": [
       "EXMEM",
@@ -3716,10 +3716,10 @@
       "resultw_wd3"
      ],
      "hop": {
-      "writeregw_a3": 0,
       "aluoutw_mux": 0,
+      "c_regwrite_w": 0,
       "resultw_wd3": 1,
-      "c_regwrite_w": 0
+      "writeregw_a3": 0
      },
      "comps": [
       "MEMWB",
