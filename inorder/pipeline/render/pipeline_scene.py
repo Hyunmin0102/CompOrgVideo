@@ -18,9 +18,9 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 
 from manim import (BOLD, DOWN, LEFT, RIGHT, UP, WHITE, Create, DashedLine, FadeIn, FadeOut,  # noqa: E402
-                   GrowFromEdge, Group, LaggedStart, Line, Rectangle, RoundedRectangle, VGroup, linear)
+                   GrowFromEdge, Group, LaggedStart, Line, Rectangle, VGroup, linear)
 
-from common.style import (ASSUME, BLUE, FAINT, GREY, INK, INSTR_COLORS, MONO, ORANGE, RED,  # noqa: E402
+from common.style import (ASSUME, BLUE, FAINT, GREY, INK, INSTR_COLORS, MONO, RED,  # noqa: E402
                           YEL, YEL_STRONG, Cell, StyleScene, term, txt)
 from inorder.shared.datapath import PL_STAGE_X, Datapath  # noqa: E402
 
@@ -485,8 +485,8 @@ class Pipeline(StyleScene):
     def cycle_note(self, st):
         used = max((v["used_ps"] for v in st["stages"].values()), default=0)
         busy = ", ".join(f"{s} {v['used_ps']}" for s, v in st["stages"].items() if v["used_ps"])
-        self.say([f"이 사이클의 단계별 시간(ps): {busy} — 가장 긴 단계 {used}ps, 클록 {self.period}ps.",
-                  "모든 단계가 같은 클록 안에서 동시에 일한다."], wait=1.6)
+        self.say([f"이 사이클에서 각 단계의 일이 끝나는 시각(ps): {busy} — 가장 늦은 것 {used}ps, 클록 {self.period}ps.",
+                  "다섯 단계가 같은 클록 안에서 동시에 일한다 (ID는 반 사이클 뒤에 시작)."], wait=1.6)
 
     # ------------------------------------------------------- clock edge ---
     def clock_edge(self, st):
