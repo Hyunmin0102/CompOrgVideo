@@ -1,0 +1,3397 @@
+{
+ "video": "inorder/single_cycle",
+ "config": {
+  "delays_ps": {
+   "mem": 200,
+   "alu": 100,
+   "adder": 100,
+   "rf": 50,
+   "other": 0
+  },
+  "delays_source": "L10 slide 90 (PDF p.15)",
+  "period_ps": 600,
+  "latency_by_class": {
+   "R": 400,
+   "I": 400,
+   "LW": 600,
+   "SW": 550,
+   "BEQ": 350
+  },
+  "alu_control_encoding": {
+   "add": "010",
+   "sub": "110",
+   "and": "000",
+   "or": "001",
+   "slt": "111"
+  },
+  "assumptions": [
+   "ALUControl의 3비트 값(add=010, sub=110, and=000, or=001, slt=111)은 H&H 7장 표를 따름. 슬라이드(L10 56–61)에는 funct/opcode/Add/bcond라는 연산 이름만 있음.",
+   "beq의 비교(bcond)는 H&H처럼 ALU 뺄셈(sub) 후 Zero 신호로 판단함.",
+   "분기 목표 덧셈기는 부호 확장된 즉치값이 준비된 뒤(200ps) 시작해 300ps에 끝난다고 계산함. 슬라이드 L10 95의 그림은 이 지점을 200ps로 표시하지만, beq 전체 350ps에는 영향 없음.",
+   "단순화한 데이터패스에는 j(jump) 경로를 그리지 않음 (공통 프로그램에서 j를 쓰지 않음)."
+  ],
+  "wire_ends": {
+   "pcnext": [
+    "PCMUX",
+    "PC"
+   ],
+   "pc_imem": [
+    "PC",
+    "IMEM"
+   ],
+   "pc_add4": [
+    "PC",
+    "ADD4"
+   ],
+   "four_add4": [
+    "CONST",
+    "ADD4"
+   ],
+   "pcplus4_pcmux": [
+    "ADD4",
+    "PCMUX"
+   ],
+   "pcplus4_addbr": [
+    "ADD4",
+    "ADDBR"
+   ],
+   "instr_ctrl": [
+    "IMEM",
+    "CTRL"
+   ],
+   "instr_a1": [
+    "IMEM",
+    "RF"
+   ],
+   "instr_a2": [
+    "IMEM",
+    "RF"
+   ],
+   "instr_rt_wr": [
+    "IMEM",
+    "REGDSTMUX"
+   ],
+   "instr_rd_wr": [
+    "IMEM",
+    "REGDSTMUX"
+   ],
+   "instr_imm": [
+    "IMEM",
+    "SIGNEXT"
+   ],
+   "writereg": [
+    "REGDSTMUX",
+    "RF_W"
+   ],
+   "rd1_srca": [
+    "RF",
+    "ALU"
+   ],
+   "rd2_alusrc": [
+    "RF",
+    "ALUSRCMUX"
+   ],
+   "rd2_wd": [
+    "RF",
+    "DMEM"
+   ],
+   "signimm_alusrc": [
+    "SIGNEXT",
+    "ALUSRCMUX"
+   ],
+   "signimm_sl2": [
+    "SIGNEXT",
+    "SL2"
+   ],
+   "srcb": [
+    "ALUSRCMUX",
+    "ALU"
+   ],
+   "sl2_addbr": [
+    "SL2",
+    "ADDBR"
+   ],
+   "aluresult_addr": [
+    "ALU",
+    "DMEM"
+   ],
+   "aluresult_res": [
+    "ALU",
+    "RESMUX"
+   ],
+   "readdata_res": [
+    "DMEM",
+    "RESMUX"
+   ],
+   "result_wd3": [
+    "RESMUX",
+    "RF_W"
+   ],
+   "zero_and": [
+    "ALU",
+    "AND"
+   ],
+   "branch_and": [
+    "CTRL",
+    "AND"
+   ],
+   "pcsrc": [
+    "AND",
+    "PCMUX"
+   ],
+   "pcbranch": [
+    "ADDBR",
+    "PCMUX"
+   ]
+  },
+  "program": [
+   {
+    "addr": 0,
+    "word": "8E080000",
+    "text": "lw   $t0, 0($s0)",
+    "reason": "Mem[0x40]=7을 읽어 오는 load. 바로 다음 명령어가 이 값을 쓴다."
+   },
+   {
+    "addr": 4,
+    "word": "01114820",
+    "text": "add  $t1, $t0, $s1",
+    "reason": "lw 결과 $t0을 곧바로 사용 → load-use 의존 (파이프라인 1 stall)."
+   },
+   {
+    "addr": 8,
+    "word": "01325022",
+    "text": "sub  $t2, $t1, $s2",
+    "reason": "바로 앞 add의 결과 $t1 사용 → 거리 1 RAW (MEM→EX forwarding)."
+   },
+   {
+    "addr": 12,
+    "word": "01335824",
+    "text": "and  $t3, $t1, $s3",
+    "reason": "두 칸 앞 add의 결과 $t1 사용 → 거리 2 RAW (WB→EX forwarding). 결과 4."
+   },
+   {
+    "addr": 16,
+    "word": "AE090004",
+    "text": "sw   $t1, 4($s0)",
+    "reason": "sw: $t1(=12)을 Mem[0x44]에 저장. $t1은 세 칸 앞이라 forwarding 불필요."
+   },
+   {
+    "addr": 20,
+    "word": "0232602A",
+    "text": "slt  $t4, $s1, $s2",
+    "reason": "slt: 독립 명령어. beq와 그 피연산자 사이 간격을 벌려 비교 stall을 없앤다."
+   },
+   {
+    "addr": 24,
+    "word": "114B0001",
+    "text": "beq  $t2, $t3, skip",
+    "reason": "beq $t2,$t3: 둘 다 4 → taken. 피연산자가 3·4칸 앞에서 계산돼 stall 없음."
+   },
+   {
+    "addr": 28,
+    "word": "0231A020",
+    "text": "add  $s4, $s1, $s1",
+    "reason": "taken 분기로 건너뛰는 명령어. 실행됐다면 $s4=10이 되므로 최종 상태로 확인 가능."
+   },
+   {
+    "addr": 32,
+    "word": "216D000A",
+    "text": "addi $t5, $t3, 10",
+    "reason": "분기 목표(skip). addi로 I-type ALU 경로를 보여준다. $t5 = 4+10 = 14."
+   },
+   {
+    "addr": 36,
+    "word": "01937025",
+    "text": "or   $t6, $t4, $s3",
+    "reason": "마지막 명령어 or. $t6 = 1 | 6 = 7. 피연산자는 모두 멀리 앞에서 계산됨."
+   }
+  ],
+  "init_regs": {
+   "$s0": 64,
+   "$s1": 5,
+   "$s2": 8,
+   "$s3": 6
+  },
+  "init_mem": {
+   "0x40": 7,
+   "0x44": 0,
+   "0x48": 0
+  },
+  "show_regs": [
+   "$t0",
+   "$t1",
+   "$t2",
+   "$t3",
+   "$t4",
+   "$t5",
+   "$t6",
+   "$s0",
+   "$s1",
+   "$s2",
+   "$s3",
+   "$s4"
+  ],
+  "show_mem": [
+   "0x40",
+   "0x44",
+   "0x48"
+  ]
+ },
+ "steps": [
+  {
+   "cycle": 1,
+   "index": 1,
+   "pc": 0,
+   "word": "8E080000",
+   "text": "lw   $t0, 0($s0)",
+   "mnemonic": "lw",
+   "class": "LW",
+   "fields": {
+    "opcode": 35,
+    "rs": 16,
+    "rt": 8,
+    "rd": 0,
+    "funct": 0,
+    "imm": 0
+   },
+   "control": {
+    "RegWrite": 1,
+    "RegDst": 0,
+    "ALUSrc": 1,
+    "Branch": 0,
+    "MemWrite": 0,
+    "MemtoReg": 1,
+    "ALUControl": "010"
+   },
+   "alu_op": "add",
+   "PCSrc": 0,
+   "Zero": 0,
+   "values": {
+    "PCPlus4": 4,
+    "RD1": 64,
+    "RD2": 0,
+    "SignImm": 0,
+    "SrcA": 64,
+    "SrcB": 0,
+    "ALUResult": 64,
+    "ReadData": 7,
+    "WriteData": null,
+    "WriteReg": "$t0",
+    "Result": 7,
+    "PCBranch": 4,
+    "PCNext": 4
+   },
+   "active": {
+    "components": [
+     "ADD4",
+     "ALU",
+     "ALUSRCMUX",
+     "CTRL",
+     "DMEM",
+     "IMEM",
+     "PC",
+     "PCMUX",
+     "REGDSTMUX",
+     "RESMUX",
+     "RF",
+     "SIGNEXT"
+    ],
+    "wires": [
+     "aluresult_addr",
+     "four_add4",
+     "instr_a1",
+     "instr_ctrl",
+     "instr_imm",
+     "instr_rt_wr",
+     "pc_add4",
+     "pc_imem",
+     "pcnext",
+     "pcplus4_pcmux",
+     "rd1_srca",
+     "readdata_res",
+     "result_wd3",
+     "signimm_alusrc",
+     "srcb",
+     "writereg"
+    ]
+   },
+   "timing": {
+    "events": [
+     {
+      "comp": "ADD4",
+      "stage": "IF",
+      "start": 0,
+      "end": 100
+     },
+     {
+      "comp": "IMEM",
+      "stage": "IF",
+      "start": 0,
+      "end": 200
+     },
+     {
+      "comp": "RF",
+      "stage": "ID",
+      "start": 200,
+      "end": 250
+     },
+     {
+      "comp": "ALU",
+      "stage": "EX",
+      "start": 250,
+      "end": 350
+     },
+     {
+      "comp": "DMEM",
+      "stage": "MEM",
+      "start": 350,
+      "end": 550
+     },
+     {
+      "comp": "RF_W",
+      "stage": "WB",
+      "start": 550,
+      "end": 600
+     }
+    ],
+    "latency": 600,
+    "period": 600,
+    "waste": 0,
+    "wire_ps": {
+     "aluresult_addr": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_ctrl": 200,
+     "instr_imm": 200,
+     "instr_rt_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "readdata_res": 550,
+     "result_wd3": 550,
+     "signimm_alusrc": 200,
+     "srcb": 200,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "DMEM": [
+      [
+       350,
+       550
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       550,
+       550
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       550,
+       600
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       200,
+       200
+      ]
+     ]
+    }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_ctrl",
+      "instr_imm",
+      "instr_rt_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "SIGNEXT",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "signimm_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "SIGNEXT",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "MEM",
+     "stage": "MEM",
+     "wires": [
+      "aluresult_addr"
+     ],
+     "comps": [
+      "ALU",
+      "DMEM"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "readdata_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "DMEM",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_imm": 0,
+    "instr_rt_wr": 0,
+    "rd1_srca": 0,
+    "signimm_alusrc": 0,
+    "srcb": 1,
+    "aluresult_addr": 0,
+    "writereg": 0,
+    "readdata_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
+   "changes": {
+    "regs": {
+     "$t0": 7
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 0,
+    "$t2": 0,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 2,
+   "index": 2,
+   "pc": 4,
+   "word": "01114820",
+   "text": "add  $t1, $t0, $s1",
+   "mnemonic": "add",
+   "class": "R",
+   "fields": {
+    "opcode": 0,
+    "rs": 8,
+    "rt": 17,
+    "rd": 9,
+    "funct": 32,
+    "imm": 18464
+   },
+   "control": {
+    "RegWrite": 1,
+    "RegDst": 1,
+    "ALUSrc": 0,
+    "Branch": 0,
+    "MemWrite": 0,
+    "MemtoReg": 0,
+    "ALUControl": "010"
+   },
+   "alu_op": "add",
+   "PCSrc": 0,
+   "Zero": 0,
+   "values": {
+    "PCPlus4": 8,
+    "RD1": 7,
+    "RD2": 5,
+    "SignImm": 18464,
+    "SrcA": 7,
+    "SrcB": 5,
+    "ALUResult": 12,
+    "ReadData": null,
+    "WriteData": null,
+    "WriteReg": "$t1",
+    "Result": 12,
+    "PCBranch": 73864,
+    "PCNext": 8
+   },
+   "active": {
+    "components": [
+     "ADD4",
+     "ALU",
+     "ALUSRCMUX",
+     "CTRL",
+     "IMEM",
+     "PC",
+     "PCMUX",
+     "REGDSTMUX",
+     "RESMUX",
+     "RF"
+    ],
+    "wires": [
+     "aluresult_res",
+     "four_add4",
+     "instr_a1",
+     "instr_a2",
+     "instr_ctrl",
+     "instr_rd_wr",
+     "pc_add4",
+     "pc_imem",
+     "pcnext",
+     "pcplus4_pcmux",
+     "rd1_srca",
+     "rd2_alusrc",
+     "result_wd3",
+     "srcb",
+     "writereg"
+    ]
+   },
+   "timing": {
+    "events": [
+     {
+      "comp": "ADD4",
+      "stage": "IF",
+      "start": 0,
+      "end": 100
+     },
+     {
+      "comp": "IMEM",
+      "stage": "IF",
+      "start": 0,
+      "end": 200
+     },
+     {
+      "comp": "RF",
+      "stage": "ID",
+      "start": 200,
+      "end": 250
+     },
+     {
+      "comp": "ALU",
+      "stage": "EX",
+      "start": 250,
+      "end": 350
+     },
+     {
+      "comp": "RF_W",
+      "stage": "WB",
+      "start": 350,
+      "end": 400
+     }
+    ],
+    "latency": 400,
+    "period": 600,
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
+   "changes": {
+    "regs": {
+     "$t1": 12
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 0,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 3,
+   "index": 3,
+   "pc": 8,
+   "word": "01325022",
+   "text": "sub  $t2, $t1, $s2",
+   "mnemonic": "sub",
+   "class": "R",
+   "fields": {
+    "opcode": 0,
+    "rs": 9,
+    "rt": 18,
+    "rd": 10,
+    "funct": 34,
+    "imm": 20514
+   },
+   "control": {
+    "RegWrite": 1,
+    "RegDst": 1,
+    "ALUSrc": 0,
+    "Branch": 0,
+    "MemWrite": 0,
+    "MemtoReg": 0,
+    "ALUControl": "110"
+   },
+   "alu_op": "sub",
+   "PCSrc": 0,
+   "Zero": 0,
+   "values": {
+    "PCPlus4": 12,
+    "RD1": 12,
+    "RD2": 8,
+    "SignImm": 20514,
+    "SrcA": 12,
+    "SrcB": 8,
+    "ALUResult": 4,
+    "ReadData": null,
+    "WriteData": null,
+    "WriteReg": "$t2",
+    "Result": 4,
+    "PCBranch": 82068,
+    "PCNext": 12
+   },
+   "active": {
+    "components": [
+     "ADD4",
+     "ALU",
+     "ALUSRCMUX",
+     "CTRL",
+     "IMEM",
+     "PC",
+     "PCMUX",
+     "REGDSTMUX",
+     "RESMUX",
+     "RF"
+    ],
+    "wires": [
+     "aluresult_res",
+     "four_add4",
+     "instr_a1",
+     "instr_a2",
+     "instr_ctrl",
+     "instr_rd_wr",
+     "pc_add4",
+     "pc_imem",
+     "pcnext",
+     "pcplus4_pcmux",
+     "rd1_srca",
+     "rd2_alusrc",
+     "result_wd3",
+     "srcb",
+     "writereg"
+    ]
+   },
+   "timing": {
+    "events": [
+     {
+      "comp": "ADD4",
+      "stage": "IF",
+      "start": 0,
+      "end": 100
+     },
+     {
+      "comp": "IMEM",
+      "stage": "IF",
+      "start": 0,
+      "end": 200
+     },
+     {
+      "comp": "RF",
+      "stage": "ID",
+      "start": 200,
+      "end": 250
+     },
+     {
+      "comp": "ALU",
+      "stage": "EX",
+      "start": 250,
+      "end": 350
+     },
+     {
+      "comp": "RF_W",
+      "stage": "WB",
+      "start": 350,
+      "end": 400
+     }
+    ],
+    "latency": 400,
+    "period": 600,
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
+   "changes": {
+    "regs": {
+     "$t2": 4
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 0,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 4,
+   "index": 4,
+   "pc": 12,
+   "word": "01335824",
+   "text": "and  $t3, $t1, $s3",
+   "mnemonic": "and",
+   "class": "R",
+   "fields": {
+    "opcode": 0,
+    "rs": 9,
+    "rt": 19,
+    "rd": 11,
+    "funct": 36,
+    "imm": 22564
+   },
+   "control": {
+    "RegWrite": 1,
+    "RegDst": 1,
+    "ALUSrc": 0,
+    "Branch": 0,
+    "MemWrite": 0,
+    "MemtoReg": 0,
+    "ALUControl": "000"
+   },
+   "alu_op": "and",
+   "PCSrc": 0,
+   "Zero": 0,
+   "values": {
+    "PCPlus4": 16,
+    "RD1": 12,
+    "RD2": 6,
+    "SignImm": 22564,
+    "SrcA": 12,
+    "SrcB": 6,
+    "ALUResult": 4,
+    "ReadData": null,
+    "WriteData": null,
+    "WriteReg": "$t3",
+    "Result": 4,
+    "PCBranch": 90272,
+    "PCNext": 16
+   },
+   "active": {
+    "components": [
+     "ADD4",
+     "ALU",
+     "ALUSRCMUX",
+     "CTRL",
+     "IMEM",
+     "PC",
+     "PCMUX",
+     "REGDSTMUX",
+     "RESMUX",
+     "RF"
+    ],
+    "wires": [
+     "aluresult_res",
+     "four_add4",
+     "instr_a1",
+     "instr_a2",
+     "instr_ctrl",
+     "instr_rd_wr",
+     "pc_add4",
+     "pc_imem",
+     "pcnext",
+     "pcplus4_pcmux",
+     "rd1_srca",
+     "rd2_alusrc",
+     "result_wd3",
+     "srcb",
+     "writereg"
+    ]
+   },
+   "timing": {
+    "events": [
+     {
+      "comp": "ADD4",
+      "stage": "IF",
+      "start": 0,
+      "end": 100
+     },
+     {
+      "comp": "IMEM",
+      "stage": "IF",
+      "start": 0,
+      "end": 200
+     },
+     {
+      "comp": "RF",
+      "stage": "ID",
+      "start": 200,
+      "end": 250
+     },
+     {
+      "comp": "ALU",
+      "stage": "EX",
+      "start": 250,
+      "end": 350
+     },
+     {
+      "comp": "RF_W",
+      "stage": "WB",
+      "start": 350,
+      "end": 400
+     }
+    ],
+    "latency": 400,
+    "period": 600,
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
+   "changes": {
+    "regs": {
+     "$t3": 4
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 0,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 5,
+   "index": 5,
+   "pc": 16,
+   "word": "AE090004",
+   "text": "sw   $t1, 4($s0)",
+   "mnemonic": "sw",
+   "class": "SW",
+   "fields": {
+    "opcode": 43,
+    "rs": 16,
+    "rt": 9,
+    "rd": 0,
+    "funct": 4,
+    "imm": 4
+   },
+   "control": {
+    "RegWrite": 0,
+    "RegDst": "X",
+    "ALUSrc": 1,
+    "Branch": 0,
+    "MemWrite": 1,
+    "MemtoReg": "X",
+    "ALUControl": "010"
+   },
+   "alu_op": "add",
+   "PCSrc": 0,
+   "Zero": 0,
+   "values": {
+    "PCPlus4": 20,
+    "RD1": 64,
+    "RD2": 12,
+    "SignImm": 4,
+    "SrcA": 64,
+    "SrcB": 4,
+    "ALUResult": 68,
+    "ReadData": null,
+    "WriteData": 12,
+    "WriteReg": null,
+    "Result": null,
+    "PCBranch": 36,
+    "PCNext": 20
+   },
+   "active": {
+    "components": [
+     "ADD4",
+     "ALU",
+     "ALUSRCMUX",
+     "CTRL",
+     "DMEM",
+     "IMEM",
+     "PC",
+     "PCMUX",
+     "RF",
+     "SIGNEXT"
+    ],
+    "wires": [
+     "aluresult_addr",
+     "four_add4",
+     "instr_a1",
+     "instr_a2",
+     "instr_ctrl",
+     "instr_imm",
+     "pc_add4",
+     "pc_imem",
+     "pcnext",
+     "pcplus4_pcmux",
+     "rd1_srca",
+     "rd2_wd",
+     "signimm_alusrc",
+     "srcb"
+    ]
+   },
+   "timing": {
+    "events": [
+     {
+      "comp": "ADD4",
+      "stage": "IF",
+      "start": 0,
+      "end": 100
+     },
+     {
+      "comp": "IMEM",
+      "stage": "IF",
+      "start": 0,
+      "end": 200
+     },
+     {
+      "comp": "RF",
+      "stage": "ID",
+      "start": 200,
+      "end": 250
+     },
+     {
+      "comp": "ALU",
+      "stage": "EX",
+      "start": 250,
+      "end": 350
+     },
+     {
+      "comp": "DMEM",
+      "stage": "MEM",
+      "start": 350,
+      "end": 550
+     }
+    ],
+    "latency": 550,
+    "period": 600,
+    "waste": 50,
+    "wire_ps": {
+     "aluresult_addr": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_imm": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_wd": 250,
+     "signimm_alusrc": 200,
+     "srcb": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "DMEM": [
+      [
+       350,
+       550
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       200,
+       200
+      ]
+     ]
+    }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_imm"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "SIGNEXT"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "signimm_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "SIGNEXT",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "MEM",
+     "stage": "MEM",
+     "wires": [
+      "aluresult_addr",
+      "rd2_wd"
+     ],
+     "comps": [
+      "ALU",
+      "DMEM",
+      "RF"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_imm": 0,
+    "rd1_srca": 0,
+    "signimm_alusrc": 0,
+    "srcb": 1,
+    "aluresult_addr": 0,
+    "rd2_wd": 0,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
+   "changes": {
+    "regs": {},
+    "mem": {
+     "0x44": 12
+    }
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 0,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 6,
+   "index": 6,
+   "pc": 20,
+   "word": "0232602A",
+   "text": "slt  $t4, $s1, $s2",
+   "mnemonic": "slt",
+   "class": "R",
+   "fields": {
+    "opcode": 0,
+    "rs": 17,
+    "rt": 18,
+    "rd": 12,
+    "funct": 42,
+    "imm": 24618
+   },
+   "control": {
+    "RegWrite": 1,
+    "RegDst": 1,
+    "ALUSrc": 0,
+    "Branch": 0,
+    "MemWrite": 0,
+    "MemtoReg": 0,
+    "ALUControl": "111"
+   },
+   "alu_op": "slt",
+   "PCSrc": 0,
+   "Zero": 0,
+   "values": {
+    "PCPlus4": 24,
+    "RD1": 5,
+    "RD2": 8,
+    "SignImm": 24618,
+    "SrcA": 5,
+    "SrcB": 8,
+    "ALUResult": 1,
+    "ReadData": null,
+    "WriteData": null,
+    "WriteReg": "$t4",
+    "Result": 1,
+    "PCBranch": 98496,
+    "PCNext": 24
+   },
+   "active": {
+    "components": [
+     "ADD4",
+     "ALU",
+     "ALUSRCMUX",
+     "CTRL",
+     "IMEM",
+     "PC",
+     "PCMUX",
+     "REGDSTMUX",
+     "RESMUX",
+     "RF"
+    ],
+    "wires": [
+     "aluresult_res",
+     "four_add4",
+     "instr_a1",
+     "instr_a2",
+     "instr_ctrl",
+     "instr_rd_wr",
+     "pc_add4",
+     "pc_imem",
+     "pcnext",
+     "pcplus4_pcmux",
+     "rd1_srca",
+     "rd2_alusrc",
+     "result_wd3",
+     "srcb",
+     "writereg"
+    ]
+   },
+   "timing": {
+    "events": [
+     {
+      "comp": "ADD4",
+      "stage": "IF",
+      "start": 0,
+      "end": 100
+     },
+     {
+      "comp": "IMEM",
+      "stage": "IF",
+      "start": 0,
+      "end": 200
+     },
+     {
+      "comp": "RF",
+      "stage": "ID",
+      "start": 200,
+      "end": 250
+     },
+     {
+      "comp": "ALU",
+      "stage": "EX",
+      "start": 250,
+      "end": 350
+     },
+     {
+      "comp": "RF_W",
+      "stage": "WB",
+      "start": 350,
+      "end": 400
+     }
+    ],
+    "latency": 400,
+    "period": 600,
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
+   "changes": {
+    "regs": {
+     "$t4": 1
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 1,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 7,
+   "index": 7,
+   "pc": 24,
+   "word": "114B0001",
+   "text": "beq  $t2, $t3, skip",
+   "mnemonic": "beq",
+   "class": "BEQ",
+   "fields": {
+    "opcode": 4,
+    "rs": 10,
+    "rt": 11,
+    "rd": 0,
+    "funct": 1,
+    "imm": 1
+   },
+   "control": {
+    "RegWrite": 0,
+    "RegDst": "X",
+    "ALUSrc": 0,
+    "Branch": 1,
+    "MemWrite": 0,
+    "MemtoReg": "X",
+    "ALUControl": "110"
+   },
+   "alu_op": "sub",
+   "PCSrc": 1,
+   "Zero": 1,
+   "values": {
+    "PCPlus4": 28,
+    "RD1": 4,
+    "RD2": 4,
+    "SignImm": 1,
+    "SrcA": 4,
+    "SrcB": 4,
+    "ALUResult": 0,
+    "ReadData": null,
+    "WriteData": null,
+    "WriteReg": null,
+    "Result": null,
+    "PCBranch": 32,
+    "PCNext": 32
+   },
+   "active": {
+    "components": [
+     "ADD4",
+     "ADDBR",
+     "ALU",
+     "ALUSRCMUX",
+     "AND",
+     "CTRL",
+     "IMEM",
+     "PC",
+     "PCMUX",
+     "RF",
+     "SIGNEXT",
+     "SL2"
+    ],
+    "wires": [
+     "branch_and",
+     "four_add4",
+     "instr_a1",
+     "instr_a2",
+     "instr_ctrl",
+     "instr_imm",
+     "pc_add4",
+     "pc_imem",
+     "pcbranch",
+     "pcnext",
+     "pcplus4_addbr",
+     "pcsrc",
+     "rd1_srca",
+     "rd2_alusrc",
+     "signimm_sl2",
+     "sl2_addbr",
+     "srcb",
+     "zero_and"
+    ]
+   },
+   "timing": {
+    "events": [
+     {
+      "comp": "ADD4",
+      "stage": "IF",
+      "start": 0,
+      "end": 100
+     },
+     {
+      "comp": "IMEM",
+      "stage": "IF",
+      "start": 0,
+      "end": 200
+     },
+     {
+      "comp": "RF",
+      "stage": "ID",
+      "start": 200,
+      "end": 250
+     },
+     {
+      "comp": "ALU",
+      "stage": "EX",
+      "start": 250,
+      "end": 350
+     },
+     {
+      "comp": "ADDBR",
+      "stage": "EX",
+      "start": 200,
+      "end": 300
+     }
+    ],
+    "latency": 350,
+    "period": 600,
+    "waste": 250,
+    "wire_ps": {
+     "branch_and": 200,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_imm": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcbranch": 300,
+     "pcnext": 350,
+     "pcplus4_addbr": 100,
+     "pcsrc": 350,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "signimm_sl2": 200,
+     "sl2_addbr": 200,
+     "srcb": 250,
+     "zero_and": 350
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ADDBR": [
+      [
+       200,
+       300
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "AND": [
+      [
+       350,
+       350
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       200,
+       200
+      ]
+     ],
+     "SL2": [
+      [
+       200,
+       200
+      ]
+     ]
+    }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_imm"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "SIGNEXT"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "pcplus4_addbr",
+      "rd1_srca",
+      "rd2_alusrc",
+      "signimm_sl2",
+      "sl2_addbr",
+      "srcb"
+     ],
+     "comps": [
+      "ADD4",
+      "ADDBR",
+      "RF",
+      "ALU",
+      "ALUSRCMUX",
+      "SIGNEXT",
+      "SL2"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "branch_and",
+      "pcbranch",
+      "zero_and",
+      "pcsrc",
+      "pcnext"
+     ],
+     "comps": [
+      "CTRL",
+      "AND",
+      "ADDBR",
+      "PCMUX",
+      "ALU",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_imm": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "signimm_sl2": 0,
+    "sl2_addbr": 1,
+    "pcplus4_addbr": 0,
+    "zero_and": 0,
+    "branch_and": 0,
+    "pcsrc": 1,
+    "pcbranch": 0,
+    "pcnext": 2
+   },
+   "changes": {
+    "regs": {},
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 1,
+    "$t5": 0,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 8,
+   "index": 9,
+   "pc": 32,
+   "word": "216D000A",
+   "text": "addi $t5, $t3, 10",
+   "mnemonic": "addi",
+   "class": "I",
+   "fields": {
+    "opcode": 8,
+    "rs": 11,
+    "rt": 13,
+    "rd": 0,
+    "funct": 10,
+    "imm": 10
+   },
+   "control": {
+    "RegWrite": 1,
+    "RegDst": 0,
+    "ALUSrc": 1,
+    "Branch": 0,
+    "MemWrite": 0,
+    "MemtoReg": 0,
+    "ALUControl": "010"
+   },
+   "alu_op": "add",
+   "PCSrc": 0,
+   "Zero": 0,
+   "values": {
+    "PCPlus4": 36,
+    "RD1": 4,
+    "RD2": 0,
+    "SignImm": 10,
+    "SrcA": 4,
+    "SrcB": 10,
+    "ALUResult": 14,
+    "ReadData": null,
+    "WriteData": null,
+    "WriteReg": "$t5",
+    "Result": 14,
+    "PCBranch": 76,
+    "PCNext": 36
+   },
+   "active": {
+    "components": [
+     "ADD4",
+     "ALU",
+     "ALUSRCMUX",
+     "CTRL",
+     "IMEM",
+     "PC",
+     "PCMUX",
+     "REGDSTMUX",
+     "RESMUX",
+     "RF",
+     "SIGNEXT"
+    ],
+    "wires": [
+     "aluresult_res",
+     "four_add4",
+     "instr_a1",
+     "instr_ctrl",
+     "instr_imm",
+     "instr_rt_wr",
+     "pc_add4",
+     "pc_imem",
+     "pcnext",
+     "pcplus4_pcmux",
+     "rd1_srca",
+     "result_wd3",
+     "signimm_alusrc",
+     "srcb",
+     "writereg"
+    ]
+   },
+   "timing": {
+    "events": [
+     {
+      "comp": "ADD4",
+      "stage": "IF",
+      "start": 0,
+      "end": 100
+     },
+     {
+      "comp": "IMEM",
+      "stage": "IF",
+      "start": 0,
+      "end": 200
+     },
+     {
+      "comp": "RF",
+      "stage": "ID",
+      "start": 200,
+      "end": 250
+     },
+     {
+      "comp": "ALU",
+      "stage": "EX",
+      "start": 250,
+      "end": 350
+     },
+     {
+      "comp": "RF_W",
+      "stage": "WB",
+      "start": 350,
+      "end": 400
+     }
+    ],
+    "latency": 400,
+    "period": 600,
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_ctrl": 200,
+     "instr_imm": 200,
+     "instr_rt_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "result_wd3": 350,
+     "signimm_alusrc": 200,
+     "srcb": 200,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ],
+     "SIGNEXT": [
+      [
+       200,
+       200
+      ]
+     ]
+    }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_ctrl",
+      "instr_imm",
+      "instr_rt_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "SIGNEXT",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "signimm_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "SIGNEXT",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_imm": 0,
+    "instr_rt_wr": 0,
+    "rd1_srca": 0,
+    "signimm_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
+   "changes": {
+    "regs": {
+     "$t5": 14
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 1,
+    "$t5": 14,
+    "$t6": 0,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  },
+  {
+   "cycle": 9,
+   "index": 10,
+   "pc": 36,
+   "word": "01937025",
+   "text": "or   $t6, $t4, $s3",
+   "mnemonic": "or",
+   "class": "R",
+   "fields": {
+    "opcode": 0,
+    "rs": 12,
+    "rt": 19,
+    "rd": 14,
+    "funct": 37,
+    "imm": 28709
+   },
+   "control": {
+    "RegWrite": 1,
+    "RegDst": 1,
+    "ALUSrc": 0,
+    "Branch": 0,
+    "MemWrite": 0,
+    "MemtoReg": 0,
+    "ALUControl": "001"
+   },
+   "alu_op": "or",
+   "PCSrc": 0,
+   "Zero": 0,
+   "values": {
+    "PCPlus4": 40,
+    "RD1": 1,
+    "RD2": 6,
+    "SignImm": 28709,
+    "SrcA": 1,
+    "SrcB": 6,
+    "ALUResult": 7,
+    "ReadData": null,
+    "WriteData": null,
+    "WriteReg": "$t6",
+    "Result": 7,
+    "PCBranch": 114876,
+    "PCNext": 40
+   },
+   "active": {
+    "components": [
+     "ADD4",
+     "ALU",
+     "ALUSRCMUX",
+     "CTRL",
+     "IMEM",
+     "PC",
+     "PCMUX",
+     "REGDSTMUX",
+     "RESMUX",
+     "RF"
+    ],
+    "wires": [
+     "aluresult_res",
+     "four_add4",
+     "instr_a1",
+     "instr_a2",
+     "instr_ctrl",
+     "instr_rd_wr",
+     "pc_add4",
+     "pc_imem",
+     "pcnext",
+     "pcplus4_pcmux",
+     "rd1_srca",
+     "rd2_alusrc",
+     "result_wd3",
+     "srcb",
+     "writereg"
+    ]
+   },
+   "timing": {
+    "events": [
+     {
+      "comp": "ADD4",
+      "stage": "IF",
+      "start": 0,
+      "end": 100
+     },
+     {
+      "comp": "IMEM",
+      "stage": "IF",
+      "start": 0,
+      "end": 200
+     },
+     {
+      "comp": "RF",
+      "stage": "ID",
+      "start": 200,
+      "end": 250
+     },
+     {
+      "comp": "ALU",
+      "stage": "EX",
+      "start": 250,
+      "end": 350
+     },
+     {
+      "comp": "RF_W",
+      "stage": "WB",
+      "start": 350,
+      "end": 400
+     }
+    ],
+    "latency": 400,
+    "period": 600,
+    "waste": 200,
+    "wire_ps": {
+     "aluresult_res": 350,
+     "four_add4": 0,
+     "instr_a1": 200,
+     "instr_a2": 200,
+     "instr_ctrl": 200,
+     "instr_rd_wr": 200,
+     "pc_add4": 0,
+     "pc_imem": 0,
+     "pcnext": 100,
+     "pcplus4_pcmux": 100,
+     "rd1_srca": 250,
+     "rd2_alusrc": 250,
+     "result_wd3": 350,
+     "srcb": 250,
+     "writereg": 200
+    },
+    "comp_ps": {
+     "ADD4": [
+      [
+       0,
+       100
+      ]
+     ],
+     "ALU": [
+      [
+       250,
+       350
+      ]
+     ],
+     "ALUSRCMUX": [
+      [
+       250,
+       250
+      ]
+     ],
+     "CTRL": [
+      [
+       200,
+       200
+      ]
+     ],
+     "IMEM": [
+      [
+       0,
+       200
+      ]
+     ],
+     "PC": [
+      [
+       0,
+       0
+      ]
+     ],
+     "PCMUX": [
+      [
+       100,
+       100
+      ]
+     ],
+     "REGDSTMUX": [
+      [
+       200,
+       200
+      ]
+     ],
+     "RESMUX": [
+      [
+       350,
+       350
+      ]
+     ],
+     "RF": [
+      [
+       200,
+       250
+      ],
+      [
+       350,
+       400
+      ]
+     ]
+    }
+   },
+   "jobs": [
+    {
+     "name": "IF_FETCH",
+     "stage": "IF",
+     "wires": [
+      "pc_imem"
+     ],
+     "comps": [
+      "PC",
+      "IMEM"
+     ]
+    },
+    {
+     "name": "IF_PC4",
+     "stage": "IF",
+     "wires": [
+      "four_add4",
+      "pc_add4"
+     ],
+     "comps": [
+      "ADD4",
+      "PC"
+     ]
+    },
+    {
+     "name": "ID",
+     "stage": "ID",
+     "wires": [
+      "instr_a1",
+      "instr_a2",
+      "instr_ctrl",
+      "instr_rd_wr"
+     ],
+     "comps": [
+      "IMEM",
+      "RF",
+      "CTRL",
+      "REGDSTMUX"
+     ]
+    },
+    {
+     "name": "EX",
+     "stage": "EX",
+     "wires": [
+      "rd1_srca",
+      "rd2_alusrc",
+      "srcb"
+     ],
+     "comps": [
+      "RF",
+      "ALU",
+      "ALUSRCMUX"
+     ]
+    },
+    {
+     "name": "WB",
+     "stage": "WB",
+     "wires": [
+      "aluresult_res",
+      "writereg",
+      "result_wd3"
+     ],
+     "comps": [
+      "ALU",
+      "RESMUX",
+      "REGDSTMUX",
+      "RF_W"
+     ]
+    },
+    {
+     "name": "NEXT_PC",
+     "stage": null,
+     "wires": [
+      "pcplus4_pcmux",
+      "pcnext"
+     ],
+     "comps": [
+      "ADD4",
+      "PCMUX",
+      "PC"
+     ]
+    }
+   ],
+   "wire_hop": {
+    "pc_imem": 0,
+    "pc_add4": 0,
+    "four_add4": 0,
+    "instr_ctrl": 0,
+    "instr_a1": 0,
+    "instr_a2": 0,
+    "instr_rd_wr": 0,
+    "rd1_srca": 0,
+    "rd2_alusrc": 0,
+    "srcb": 1,
+    "writereg": 0,
+    "aluresult_res": 0,
+    "result_wd3": 1,
+    "pcplus4_pcmux": 0,
+    "pcnext": 1
+   },
+   "changes": {
+    "regs": {
+     "$t6": 7
+    },
+    "mem": {}
+   },
+   "regs_after": {
+    "$0": 0,
+    "$at": 0,
+    "$v0": 0,
+    "$v1": 0,
+    "$a0": 0,
+    "$a1": 0,
+    "$a2": 0,
+    "$a3": 0,
+    "$t0": 7,
+    "$t1": 12,
+    "$t2": 4,
+    "$t3": 4,
+    "$t4": 1,
+    "$t5": 14,
+    "$t6": 7,
+    "$t7": 0,
+    "$s0": 64,
+    "$s1": 5,
+    "$s2": 8,
+    "$s3": 6,
+    "$s4": 0,
+    "$s5": 0,
+    "$s6": 0,
+    "$s7": 0,
+    "$t8": 0,
+    "$t9": 0,
+    "$k0": 0,
+    "$k1": 0,
+    "$gp": 0,
+    "$sp": 0,
+    "$fp": 0,
+    "$ra": 0
+   },
+   "mem_after": {
+    "0x40": 7,
+    "0x44": 12,
+    "0x48": 0
+   }
+  }
+ ],
+ "final": {
+  "regs": {
+   "$0": 0,
+   "$at": 0,
+   "$v0": 0,
+   "$v1": 0,
+   "$a0": 0,
+   "$a1": 0,
+   "$a2": 0,
+   "$a3": 0,
+   "$t0": 7,
+   "$t1": 12,
+   "$t2": 4,
+   "$t3": 4,
+   "$t4": 1,
+   "$t5": 14,
+   "$t6": 7,
+   "$t7": 0,
+   "$s0": 64,
+   "$s1": 5,
+   "$s2": 8,
+   "$s3": 6,
+   "$s4": 0,
+   "$s5": 0,
+   "$s6": 0,
+   "$s7": 0,
+   "$t8": 0,
+   "$t9": 0,
+   "$k0": 0,
+   "$k1": 0,
+   "$gp": 0,
+   "$sp": 0,
+   "$fp": 0,
+   "$ra": 0
+  },
+  "mem": {
+   "0x40": 7,
+   "0x44": 12,
+   "0x48": 0
+  },
+  "cycles": 9,
+  "total_ps": 5400
+ }
+}
